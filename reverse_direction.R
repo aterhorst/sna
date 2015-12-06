@@ -2,8 +2,10 @@
 #                                                   #
 #       Function to reverse tie direction           #
 #           provided by Sam Steingold               #
+#          http://tinyurl.com/h9shaum               #
 #                                                   #
 #####################################################
+
 
 graph.reverse <- function (graph) {
   if (!is.directed(graph))

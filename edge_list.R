@@ -43,6 +43,8 @@ edge_knowledge$tacit <- round(rowMeans(subset(edge_knowledge,
 
 edge_knowledge <- subset(edge_knowledge, select = c(from, to, ownernode, tacit)) # purge unwanted columns - knowledge sharing edge list
 
+## generate tacit & explicit knowledge networks
+
 tacit_level <- quantile(edge_knowledge$tacit) # compute quantiles
 edge_tacit_knowledge <- filter(edge_knowledge, tacit >= tacit_level[4]) # filter predominantly tacit knowledge sharing ties
 edge_explicit_knowledge <- filter(edge_knowledge, tacit <= tacit_level[2]) # filter predominantly explicit knowledge sharing ties

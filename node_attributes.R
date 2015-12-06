@@ -7,6 +7,7 @@
 
 library(plyr)
 library(dplyr)
+library(source.gist)
 
 # set working directory
 
@@ -74,7 +75,8 @@ node_summary <- subset(nodes, select=-c(3,4,13:51)) # drop unwanted columns usin
 
 node_summary <- na.omit(node_summary) # remove missing data
 
-source("addNewData.r")
+source("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R")
+
 allowedVars <- c("GenderDescription", "ActualOrganisation", "FakeOrganisation","FakeName","OccupationDescription","EducationLevel","EducationFieldDescription")
 node_summary <- addNewData("lookupTable.csv", node_summary, allowedVars) # add descriptive fields
 col_names <- as.data.frame(names(node_summary))

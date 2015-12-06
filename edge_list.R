@@ -53,7 +53,7 @@ edge_mixed_knowledge <- filter(edge_knowledge, tacit > tacit_level[2] & tacit < 
 # create graph from edge list
 
 knowledge_net <- graph.data.frame(edge_knowledge)
-source("reverse_direction.R")
+source("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R")
 knowledge_net <- graph.reverse(knowledge_net) # apply function to knowledge sharing ties
 knowledge_net <- simplify(knowledge_net, remove.multiple = F, remove.loops = )
 

@@ -7,10 +7,9 @@
 
 library(plyr)
 library(dplyr)
-library(XLConnect)
+library(readxl)
 library(igraph)
 library(MASS)
-library(slam)
 
 # set working directory
 
@@ -19,8 +18,8 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home P
 
 # load workbook, select sheet with relationships
 
-surveydata <- loadWorkbook("surveydata.xlsx")
-edge_all <- readWorksheet(wb,sheet = "Relationships")
+"surveydata.xlsx")
+edge_all <- read_excel("surveydata.xlsx", sheet = 2)
 
 
 # extract relationships

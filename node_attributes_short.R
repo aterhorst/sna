@@ -5,21 +5,13 @@
 #                                                   #
 #####################################################
 
-library(plyr)
-library(dplyr)
-library(readxl)
-library(foreign)
-
-# set working directory
-
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-
 # read node attribute data
 
 nodes <- read_excel("surveydata.xlsx", sheet = 1)
-write.csv(nodes, file = "temp.csv",row.names = FALSE)
-nodes <- read.csv("temp.csv")
+fn <- "temp.csv"
+write.csv(nodes, file = fn, row.names = FALSE)
+nodes <- read.csv(fn)
+if (file.exists(fn)) file.remove(fn) # clean up garbage
 
 # remove strings from numeric data
 

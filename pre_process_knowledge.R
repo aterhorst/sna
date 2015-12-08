@@ -62,16 +62,41 @@ nodes$IntrinsicMotivation <- round((rowMeans(subset(nodes, select = c(IntrinsicM
 # column_names # lists column names with corresponding column numbers
 
 node_summary <- subset(nodes, select=-c(3:4,13:51)) # drop unwanted columns using column numbers
+node_summary$label <- as.character(node_summary$id)
+# generate knowledge provider ties
 
-# import links
+
 
 edge_all <- read_excel("surveydata.xlsx", sheet = 2) # read in relationships sheet from onasurvey downloaded workbook
 edge_knowledge <- filter(edge_all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
 
-# generate graph from links, nodes
+edge_knowledge[11:13] <- lapply(edge_knowledge[11:13], as.numeric)
+edge_knowledge$Codified <- 10 - edge_knowledge$Codified # reverse score level of documented knowledge
+edge_knowledge$tacit <- round((rowMeans(subset(edge_knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
+edge_knowledge <- subset(edge_knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
+
+edge_tacit_knowledge <- filter(edge_knowledge, tacit >= 0.5) # filter predominantly tacit knowledge sharing ties
+edge_explicit_knowledge <- filter(edge_knowledge, tacit < 0.5) # filter predominantly explicit knowledge sharing ties
+
+# generate graph from ties, nodes
 
 knowledge_net <- graph.data.frame(edge_knowledge, node_summary, directed = TRUE)
+tacit_knowledge_net <- graph.data.frame(edge_tacit_knowledge, node_summary, directed = TRUE)
+explicit_knowledge_net <- graph.data.frame(edge_explicit_knowledge, node_summary, directed = TRUE)
+
+# reverse direction of ties 
+
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R") # function to reverse ties
 knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provider ties
+tacit_knowledge_net <- graph.reverse(tacit_knowledge_net) # fix direction of knowledge provider ties
+explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction of knowledge provider ties
+
+# simplify graphs
+
 knowledge_net <- simplify(knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
+tacit_knowledge_net <- simplify(tacit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
+explicit_knowledge_net <- simplify(explicit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
+
+# export graphs
+
 write.graph(knowledge_net, "knowledge_net.gml", "gml") # use in gephi or visone

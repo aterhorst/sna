@@ -1,53 +1,31 @@
-#####################################################
-#                                                   #
-#     R script to generate knowledge provider       #
-#     adjacency matrix for ingestion into PNet      #
-#                                                   #
-#####################################################
 
-library(plyr)
-library(dplyr)
-library(readxl)
 library(igraph)
-library(MASS)
-library(source.gist)
-library(devtools)
 
-# set working directory
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+# png("knowledge.png", width = 960, height = 480, units = "px")
 
-# read in relationships sheet from onasurvey downloaded workbook
-
-edge_all <- read_excel("surveydata.xlsx", sheet = 2) 
+lo <- layout.fruchterman.reingold(knowledge_net)
 
 
-# extract relationships
-
-edge_knowledge <- filter(edge_all, relationship_set_knowledge_sharing == 1) # extract knowledge received from ties
-
-## edge_ideation <- filter(edge_all, relationship_set_idea_generation == 1) # extract idea generation ties
-## edge_realisation <- filter(edge_all, relationship_idea_realisation == 1) # extract idea realisation ties
-## edge_affect_trust <- filter(edge_all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
-## edge_cognition_trust <- filter(edge_all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
-## edge_prior_relationships <- filter(edge_all, relationship_set_prior_relationships == 1) # extract prior relationship ties
-## edge_boss <- filter(edge_all, relationship_set_managers == 1) # extract manager/supervisor ties
+par(mfcol = c(1,3), mar = c(6,1,6,1))
 
 
-# create graph from edge list
+plot(knowledge_net, edge.arrow.size = 0.2, vertex.color = "red", 
+     vertex.label = V(knowledge_net)$label,
+     layout = lo,
+     main = "Knowledge \nProvider Network")
+     
+plot(knowledge_net, edge.arrow.size = 0.2, vertex.color = "light blue", 
+     vertex.label = V(knowledge_net)$label,
+     layout = lo,
+     main = "Explicit Knowledge \nProvider Network")
 
-knowledge_net <- graph.data.frame(edge_knowledge)
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R") # function to reverse ties
-knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provider ties
-knowledge_net <- simplify(knowledge_net, remove.multiple = F, remove.loops = TRUE)
+plot(tacit_knowledge_net, edge.arrow.size = 0.2, vertex.color = "green", 
+     vertex.label = V(knowledge_net)$label,
+     layout = lo,
+     main = "Tacit Knowledge \nProvider Network")
 
-# create check plot
 
-plot(knowledge_net, edge.arrow.size = .4)
-
-# create adjacency matrix
-
-adj_knowledge <- get.adjacency(knowledge_net, type = "both", names = FALSE)
-write.matrix(adj_knowledge, file = "knowledge_net.txt")
+dev.print(device = png, width = 1440, height = 640, units = "px", "knowledge_provider.png")
 

@@ -14,8 +14,8 @@ library(devtools)
 
 # set working directory
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
 # import data
 
@@ -63,9 +63,18 @@ nodes$IntrinsicMotivation <- round((rowMeans(subset(nodes, select = c(IntrinsicM
 
 node_summary <- subset(nodes, select=-c(3:4,13:51)) # drop unwanted columns using column numbers
 node_summary$label <- as.character(node_summary$id)
+
+# add organisation
+
+source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R")
+allowedVars <- c("Org")
+node_summary <- addNewData("lookupTable.csv", node_summary, allowedVars) # add descriptive fields
+
+# col_names <- as.data.frame(names(node_summary))
+# col_names
+# head(node_summary[,c(2,23,24)],18)
+
 # generate knowledge provider ties
-
-
 
 edge_all <- read_excel("surveydata.xlsx", sheet = 2) # read in relationships sheet from onasurvey downloaded workbook
 edge_knowledge <- filter(edge_all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
@@ -78,7 +87,7 @@ edge_knowledge <- subset(edge_knowledge, select = c(from, to, tacit)) # purge un
 edge_tacit_knowledge <- filter(edge_knowledge, tacit >= 0.5) # filter predominantly tacit knowledge sharing ties
 edge_explicit_knowledge <- filter(edge_knowledge, tacit < 0.5) # filter predominantly explicit knowledge sharing ties
 
-# generate graph from ties, nodes
+# generate knowledge provider graph from ties, nodes
 
 knowledge_net <- graph.data.frame(edge_knowledge, node_summary, directed = TRUE)
 tacit_knowledge_net <- graph.data.frame(edge_tacit_knowledge, node_summary, directed = TRUE)
@@ -91,12 +100,37 @@ knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provi
 tacit_knowledge_net <- graph.reverse(tacit_knowledge_net) # fix direction of knowledge provider ties
 explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction of knowledge provider ties
 
+# generate other edge lists
+
+edge_ideation <- filter(edge_all, relationship_set_idea_generation == 1) # extract idea generation with ties
+edge_realisation <- filter(edge_all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
+edge_affect_trust <- filter(edge_all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
+edge_cognition_trust <- filter(edge_all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
+edge_prior_relationships <- filter(edge_all, relationship_set_prior_relationships == 1) # extract prior relationship with ties
+edge_boss <- filter(edge_all, relationship_set_managers == 1) # extract manager/supervisor ties
+
+# generate other graphs
+
+idea_net <- graph.data.frame(edge_ideation, node_summary, directed = TRUE) # ideation network
+real_net <- graph.data.frame(edge_realisation, node_summary, directed = TRUE) # idea realisation network 
+affect_trust_net <- graph.data.frame(edge_affect_trust, node_summary, directed = TRUE) # affect-based trust network
+cog_trust_net <- graph.data.frame(edge_cognition_trust, node_summary, directed = TRUE) # cognition-based trust network
+prior_net <- graph.data.frame(edge_prior_relationships, node_summary, directed = TRUE) # prior relationships network
+boss_net <- graph.data.frame(edge_boss, node_summary, directed = TRUE) # manager network
+
+
 # simplify graphs
 
 knowledge_net <- simplify(knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
 tacit_knowledge_net <- simplify(tacit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
 explicit_knowledge_net <- simplify(explicit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
+idea_net <- simplify(idea_net, remove.multiple = FALSE, remove.loops = TRUE)
+real_net <- simplify(real_net, remove.multiple = FALSE, remove.loops = TRUE)
+affect_trust_net <- simplify(affect_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
+cog_trust_net <- simplify(cog_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
+prior_net <- simplify(prior_net, remove.multiple = FALSE, remove.loops = TRUE)
+boss_net <- simplify(boss_net, remove.multiple = FALSE, remove.loops = TRUE)
 
 # export graphs
 
-write.graph(knowledge_net, "knowledge_net.gml", "gml") # use in gephi or visone
+# write.graph(knowledge_net, "knowledge_net.gml", "gml") # use in gephi or visone

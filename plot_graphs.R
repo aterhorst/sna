@@ -1,18 +1,19 @@
-
 library(igraph)
 library(RColorBrewer)
+library(devtools)
 
 setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
-# png("knowledge.png", width = 960, height = 480, units = "px")
+source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
 
 lo <- layout.fruchterman.reingold.grid(knowledge_net,
-                                       repulserad=vcount(knowledge_net)^100, 
-                                       area=vcount(knowledge_net)^20) # fix layout
+                                       repulserad=vcount(knowledge_net)^4, 
+                                       area=vcount(knowledge_net)^3.5) # fix layout
 org <- factor(V(knowledge_net)$Org) # extract organisations
 cols <- c("light green", "yellow","orange","red","lightblue","violet","pink") # assign colours to orgs
-par(mfcol = c(3,3), mar = c(2,1,2,1))
+
+par(mfcol = c(3,3), mar = c(2,1,2,1)) # create 3x3 plot layout
 
 # 1
 plot(knowledge_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 

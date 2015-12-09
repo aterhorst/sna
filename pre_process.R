@@ -66,7 +66,7 @@ node_summary$label <- as.character(node_summary$id)
 
 # add organisation
 
-source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R")
+source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
 allowedVars <- c("Org")
 node_summary <- addNewData("lookupTable.csv", node_summary, allowedVars) # add descriptive fields
 
@@ -95,7 +95,7 @@ explicit_knowledge_net <- graph.data.frame(edge_explicit_knowledge, node_summary
 
 # reverse direction of ties 
 
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R") # function to reverse ties
+source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
 knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provider ties
 tacit_knowledge_net <- graph.reverse(tacit_knowledge_net) # fix direction of knowledge provider ties
 explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction of knowledge provider ties

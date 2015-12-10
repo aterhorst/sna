@@ -14,6 +14,10 @@ library(devtools)
 
 # import data
 
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+
+
 ## import nodes
 
 nodes <- read_excel("surveydata.xlsx", sheet = 1)
@@ -91,6 +95,7 @@ explicit_knowledge_net <- graph.data.frame(edge_explicit_knowledge, node_summary
 # reverse direction of ties 
 
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
+source(reverse_direction.R)
 knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provider ties
 tacit_knowledge_net <- graph.reverse(tacit_knowledge_net) # fix direction of knowledge provider ties
 explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction of knowledge provider ties

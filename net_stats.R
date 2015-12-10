@@ -8,15 +8,16 @@
 library(igraph)
 library(network)
 library(intergraph)
+library(devtools)
 
 # set working directory
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
 # pre-process data
 
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R")
+source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL)
 
 # create list of graphs to be crunched
 

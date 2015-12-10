@@ -37,3 +37,4 @@ for (g in graph_list){
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # constraint is higher if ego has less, or mutually stronger related (more redundant) contacts.
   }
 
+# copy standard network statistics to dataframe

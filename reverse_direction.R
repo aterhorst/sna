@@ -6,6 +6,7 @@
 #                                                   #
 #####################################################
 
+library(igraph)
 
 graph.reverse <- function (graph) {
   if (!is.directed(graph))

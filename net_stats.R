@@ -36,6 +36,8 @@ for (g in graph_list){
   eval(parse(text = paste0('V(', g, ')$betweenness <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
   eval(parse(text = paste0('V(', g, ')$eigen <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # constraint is higher if ego has less, or mutually stronger related (more redundant) contacts.
+  eval(parse(text = paste0('node_att_', g, ' <- get.vertex.attribute(', g,')'))) # record stats into new data frame
+  eval(parse(text = paste0('write.csv(node_att_', g, ', "node_att_', g,'.csv")'))) # write out csv file
+  eval(parse(text = paste0('assortativity_', g,' <- assortativity.nominal(', g,', factor(V(', g,')$Org), directed = TRUE)')))
+  eval(parse(text = paste0('write.table(assortativity_', g,', "assortativity_', g,'.txt", row.names = FALSE, col.names = FALSE)'))) # save assortivity
   }
-
-# copy standard network statistics to dataframe

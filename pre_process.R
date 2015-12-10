@@ -1,7 +1,7 @@
 #####################################################
 #                                                   #
-#     R script to generate knowledge provider       #
-#     adjacency matrix for ingestion into PNet      #
+#      R script to generate networks from raw       #
+#       xlsx files downloaded from onasurveys       #
 #                                                   #
 #####################################################
 
@@ -11,11 +11,6 @@ library(readxl)
 library(igraph)
 library(MASS)
 library(devtools)
-
-# set working directory
-
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
 # import data
 

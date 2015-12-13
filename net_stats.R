@@ -43,6 +43,15 @@ for (g in graph_list){
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
   eval(parse(text = paste0('node_att_', g, ' <- get.vertex.attribute(', g,')'))) # record stats into new data frame
   eval(parse(text = paste0('write.csv(node_att_', g, ', "node_att_', g,'.csv")'))) # write out csv file
+    }
+
+for (g in graph_list){
   eval(parse(text = paste0('assortativity_', g,' <- assortativity.nominal(', g,', factor(V(', g,')$Org), directed = TRUE)')))
-  eval(parse(text = paste0('write.table(assortativity_', g,', "assortativity_', g,'.txt", row.names = FALSE, col.names = FALSE)'))) # save assortivity
+  eval(parse(text = paste0('assortativity_', g, ' <- col.names = c("assortivity", "network)')))
+  eval(parse(text = paste0('assortativity_', g, '$network <- cut(', g')')))
+  eval(parse(text = paste0('write.table(assortativity_', g,', "assortativity_', g,'.txt", row.names = FALSE, col.names = TRUE)'))) # save assortivity
   }
+
+
+
+

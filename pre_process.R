@@ -102,11 +102,17 @@ explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction 
 # generate other edge lists
 
 edge_ideation <- filter(edge_all, relationship_set_idea_generation == 1) # extract idea generation with ties
+edge_ideation <- subset(edge_ideation, select = c(from, to)) # purge unwanted columns
 edge_realisation <- filter(edge_all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
+edge_realisation <- subset(edge_realisation, select = c(from, to)) # purge unwanted columns
 edge_affect_trust <- filter(edge_all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
+edge_affect_trust <- subset(edge_affect_trust, select = c(from, to)) # purge unwanted columns
 edge_cognition_trust <- filter(edge_all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
+edge_cognition_trust <- subset(edge_cognition_trust, select = c(from, to)) # purge unwanted columns
 edge_prior_relationships <- filter(edge_all, relationship_set_prior_relationships == 1) # extract prior relationship with ties
-edge_boss <- filter(edge_all, relationship_set_managers == 1) # extract manager/supervisor ties
+edge_prior_relationships <- subset(edge_prior_relationships, select = c(from, to)) # purge unwanted columns, select = c(from, to)) # purge unwanted columns
+edge_report_to <- filter(edge_all, relationship_set_managers == 1) # extract manager/supervisor ties
+edge_report_to <- subset(edge_report_to, select = c(from, to)) # purge unwanted columns
 
 # generate other graphs
 
@@ -115,8 +121,15 @@ real_net <- graph.data.frame(edge_realisation, node_summary, directed = TRUE) # 
 affect_trust_net <- graph.data.frame(edge_affect_trust, node_summary, directed = TRUE) # affect-based trust network
 cog_trust_net <- graph.data.frame(edge_cognition_trust, node_summary, directed = TRUE) # cognition-based trust network
 prior_net <- graph.data.frame(edge_prior_relationships, node_summary, directed = TRUE) # prior relationships network
-boss_net <- graph.data.frame(edge_boss, node_summary, directed = TRUE) # manager network
+report_to_net <- graph.data.frame(edge_report_to, node_summary, directed = TRUE) # manager network
 
+# create multiplex graph by stacking edge lists
+
+merged_edges <- rbind(edge_knowledge[,1:2], edge_ideation, edge_realisation, edge_affect_trust, 
+      edge_cognition_trust, edge_prior_relationships, edge_report_to)
+multiplex <- graph.data.frame(merged_edges, directed = TRUE) 
+multiplex <- simplify(multiplex, remove.multiple = FALSE, remove.loops = TRUE)
+E(multiplex)$weight <- count.multiple(multiplex)
 
 # simplify graphs
 
@@ -128,7 +141,7 @@ real_net <- simplify(real_net, remove.multiple = FALSE, remove.loops = TRUE)
 affect_trust_net <- simplify(affect_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
 cog_trust_net <- simplify(cog_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
 prior_net <- simplify(prior_net, remove.multiple = FALSE, remove.loops = TRUE)
-boss_net <- simplify(boss_net, remove.multiple = FALSE, remove.loops = TRUE)
+report_to_net <- simplify(report_to_net, remove.multiple = FALSE, remove.loops = TRUE)
 
 # export graphs
 

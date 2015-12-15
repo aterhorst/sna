@@ -40,18 +40,22 @@ for (g in graph_list){
   eval(parse(text = paste0('V(', g, ')$closeness <- centralization.closeness(', g, ')$res'))) # central nodes = lower total distance from all other nodes
   eval(parse(text = paste0('V(', g, ')$betweenness <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
   eval(parse(text = paste0('V(', g, ')$eigen <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
-  eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
-  eval(parse(text = paste0('node_att_', g, ' <- get.vertex.attribute(', g,')'))) # record stats into new data frame
+#  eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
+  eval(parse(text = paste0('node_att_', g, ' <- vertex.attributes(', g,')'))) # record stats into new data frame
   eval(parse(text = paste0('write.csv(node_att_', g, ', "node_att_', g,'.csv")'))) # write out csv file
-    }
-
-for (g in graph_list){
-  eval(parse(text = paste0('assortativity_', g,' <- assortativity.nominal(', g,', factor(V(', g,')$Org), directed = TRUE)')))
-  eval(parse(text = paste0('assortativity_', g, ' <- col.names = c("assortivity", "network)')))
-  eval(parse(text = paste0('assortativity_', g, '$network <- cut(', g')')))
-  eval(parse(text = paste0('write.table(assortativity_', g,', "assortativity_', g,'.txt", row.names = FALSE, col.names = TRUE)'))) # save assortivity
   }
 
+
+# compute assortativity coefficient for each network 
+
+assortativity <- data.frame("network" = character(),"assort_coeff" = numeric(), stringsAsFactors = FALSE)  # create empty data frame
+
+for (i in graph_list){
+  eval(parse(text = paste0('assort <- round(assortativity.nominal(', i,', factor(V(', i,')$Org), directed = TRUE), digits = 4)'))) # calculate assortativity
+  assortativity[nrow(assortativity) + 1,] <- c(i,assort) # add row
+  }
+
+write.csv(assortativity, "assortativity.csv")
 
 
 

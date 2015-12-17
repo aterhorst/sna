@@ -16,75 +16,77 @@ org <- factor(V(knowledge_net)$Org) # extract organisations
 cols <- c("light green", "yellow","orange","red","lightblue","violet","pink") # assign colours to orgs
 
 
-par(mfcol = c(3,3), mar = c(2,1,9,1)) # create 3x3 plot layout
-
+par(mfcol = c(3,3), mar = c(1,1,9,1)) # create 3x3 plot layout
 
 
 # 1
-plot(knowledge_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(knowledge_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Knowledge Ties")
+     layout = lo)
+title("Knowledge Sharing", cex.main = 2)
 
 # 2     
-plot(knowledge_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(knowledge_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Explicit Knowledge Ties")
+     layout = lo)
+title("Explicit Knowledge Sharing", cex.main = 2)
 
 # 3
-plot(tacit_knowledge_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(tacit_knowledge_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Tacit Knowledge Ties")
+     layout = lo)
+title("Tacit Knowledge Sharing", cex.main = 2)
 
 # 4
-plot(idea_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(idea_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
     vertex.label = V(knowledge_net)$label,
     edge.color = "black",
-    layout = lo,
-    main = "Idea Generation Ties")
+    layout = lo)
+title("Idea Generation", cex.main = 2)
 
 # 5
-plot(real_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(real_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Idea Realisation Ties")
+     layout = lo)
+title("Idea Implementation", cex.main = 2)
 
 # 6
-plot(affect_trust_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(affect_trust_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Affect-Based Trust Ties")
+     layout = lo)
+title("Affect-Based Trust", cex.main = 2)
 
 # 7
-plot(cog_trust_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(cog_trust_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Cognition-Based Trust Ties")
+     layout = lo)
+title("Cognition-Based Trust", cex.main = 2)
+
 
 # 8
-plot(prior_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(prior_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Prior Relationships")
+     layout = lo)
+title("Prior Relationships", cex.main = 2)
+
 
 # 9
-plot(report_to_net, edge.arrow.size = 0.1, vertex.color = cols[as.numeric(org)], 
+plot(report_to_net, edge.arrow.size = 0.05, vertex.color = cols[as.numeric(org)], 
      vertex.label = V(knowledge_net)$label,
      edge.color = "black",
-     layout = lo,
-     main = "Reporting Ties")
+     layout = lo)
+title("Reports To", cex.main = 2)
 
-title("Social Networks - Case Study 1", outer = TRUE, line = -1.5, cex.sub = 2, cex.main = 3)
 
+
+title("SOCIAL NETWORKS - CASE STUDY 1", outer = TRUE, line = -2, cex.main = 2.25)
 
 
 # legend(1,1,legend=levels(org),col=cols, pch = 16, cex=1.25)

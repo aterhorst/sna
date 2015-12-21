@@ -14,8 +14,8 @@ library(devtools)
 
 # import data
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 ## import nodes

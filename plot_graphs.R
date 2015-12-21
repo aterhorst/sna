@@ -1,6 +1,7 @@
 library(igraph)
 library(RColorBrewer)
 library(devtools)
+library(NetPathMiner) # downloaded from bioconducter
 
 setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
@@ -10,6 +11,8 @@ setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 lo <- layout.fruchterman.reingold(knowledge_net,
                                        repulserad=vcount(knowledge_net)^4, 
                                        area=vcount(knowledge_net)^3.5) # fix layout
+
+lo <- layoutVertex
 
 org <- factor(V(knowledge_net)$Org) # extract organisations
 

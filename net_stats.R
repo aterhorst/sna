@@ -28,7 +28,7 @@ source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R
 
 graph_list <- c("knowledge_net", "tacit_knowledge_net", "explicit_knowledge_net", 
            "idea_net", "real_net", "affect_trust_net", "cog_trust_net", "prior_net", 
-           "boss_net")
+           "report_to_net")
 
 # compute standard network statistics for each network 
 

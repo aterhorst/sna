@@ -43,9 +43,9 @@ nodes$Agreeableness2 <- 10 - nodes$Agreeableness2 # reverse agreeableness scale 
 ### aggregate survey items. Rescale aggregated items between 0 and 1.
 
 nodes$Openness <- round((rowMeans(subset(nodes, select = c(Openness1,Openness2)), na.rm = TRUE)-1)/9, digits = 2) # openness
-nodes$Conscietiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
+nodes$Conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
 nodes$Agreeableness <- round((rowMeans(subset(nodes, select = c(Agreeableness1,Agreeableness2)), na.rm = TRUE)-1)/9, digits = 2) # agreeableness
-nodes$Competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
+nodes$JobCompetence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
 nodes$SelfDetermination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
 nodes$Creativity <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
 nodes$Amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
@@ -142,8 +142,3 @@ affect_trust_net <- simplify(affect_trust_net, remove.multiple = FALSE, remove.l
 cog_trust_net <- simplify(cog_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
 prior_net <- simplify(prior_net, remove.multiple = FALSE, remove.loops = TRUE)
 report_to_net <- simplify(report_to_net, remove.multiple = FALSE, remove.loops = TRUE)
-
-# export graphs
-
-# write.graph(knowledge_net, "knowledge_net.gml", "gml") # use in gephi or visone
-

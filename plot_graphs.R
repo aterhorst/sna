@@ -8,11 +8,8 @@ setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 
 # source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
 
-lo <- layout.fruchterman.reingold(knowledge_net,
-                                       repulserad=vcount(knowledge_net)^4, 
-                                       area=vcount(knowledge_net)^3.5) # fix layout
-
-lo <- layoutVertex
+lo <- layout.kamada.kawai(knowledge_net,
+     repulserad=vcount(knowledge_net)^4,area=vcount(knowledge_net)^3.5) # fix layout
 
 org <- factor(V(knowledge_net)$Org) # extract organisations
 

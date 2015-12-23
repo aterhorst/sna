@@ -55,7 +55,10 @@ for (i in graph_list){
   assortativity[nrow(assortativity) + 1,] <- c(i,assort) # add row
   }
 
+# export data to csv
+
 write.csv(assortativity, "assortativity.csv")
+write.csv(node_summary, "nodesummary.csv")
 
 
 

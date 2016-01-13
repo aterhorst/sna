@@ -31,14 +31,20 @@ for (g in graph.list){
 
 # generate node attribute tables
 
-continuous.data <- subset(node.summary, select = c(6,11:24)) # select columns with continuous data
+continuous.data <- subset(node.summary, select = c(age,work.experience,current.job.tenure,
+                                                   personality.openness, personality.conscientiousness,
+                                                   personality.agreeableness, job.competence, self.determination,
+                                                   creative.self.efficacy, motivation.amotivation, motivation.extrinsic.regulation.social,
+                                                   motivation.extrinsic.regulation.material,motivation.introjected.regulation,
+                                                   motivation.identified.regulation, motivation.intrinsic)) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-categorical.data <- subset(node.summary, select = c(4,7:10)) # select columns with categorical data
+categorical.data <- subset(node.summary, select = c(work.location, education.level, education.field,
+                                                    occupation.class)) # select columns with categorical data
 write.table(categorical.data, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-binary.data <- subset(node.summary, select = c(5))
-write.table(binary_data, "binary_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+binary.data <- subset(node.summary, select = c(gender))
+write.table(binary.data, "binary_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 # create dyadic covariate file
 

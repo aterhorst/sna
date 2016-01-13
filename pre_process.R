@@ -13,8 +13,8 @@ library(devtools) # so we can use source_url
 
 # set working directory
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 # import nodes
@@ -68,7 +68,6 @@ node.summary$vertex.id <- node.summary$id # duplicate id for future labelling pu
 source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
 allowedVars <- c("employer")
 node.summary <- addNewData("lookupTable.csv", node.summary, allowedVars) # add descriptive fields
-node.summary <- node.summary[,c(1,23,2,24,3:22)] # reorder columns to tidy things up
 
 # generate knowledge provider ties
 
@@ -144,3 +143,9 @@ for (g in graph.list){
 }
 
 # write pre-processed data to files
+
+for (g in graph.list){
+  eval(parse(text = paste0(g,'.vertex.attributes <- get.vertex.attribute(', g,')')))
+  eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'_attributes.csv", row.names = FALSE)')))
+  eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
+}

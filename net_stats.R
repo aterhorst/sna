@@ -26,9 +26,9 @@ source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R
 
 # create list of graphs to be crunched
 
-graph_list <- c("knowledge_net", "tacit_knowledge_net", "explicit_knowledge_net", 
-           "idea_net", "real_net", "affect_trust_net", "cog_trust_net", "prior_net", 
-           "report_to_net")
+graph_list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
+           "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", "prior.relationship.net", 
+           "report.to.net")
 
 # compute standard network statistics for each network 
 

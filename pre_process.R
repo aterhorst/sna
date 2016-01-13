@@ -1,7 +1,7 @@
 #####################################################
 #                                                   #
-#      R script to generate networks from raw       #
-#       xlsx files downloaded from onasurveys       #
+#      R script to generate igraph networks         #
+#  from raw .xlsx file downloaded from onasurveys   #
 #                                                   #
 #####################################################
 
@@ -9,16 +9,15 @@ library(plyr)
 library(dplyr)
 library(readxl)
 library(igraph)
-library(MASS)
-library(devtools)
+library(devtools) # so we can use source_url
 
-# import data
+# set working directory
 
 setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
-## import nodes
+# import nodes
 
 nodes <- read_excel("surveydata.xlsx", sheet = 1)
 fn <- "temp.csv"
@@ -26,119 +25,122 @@ write.csv(nodes, file = fn, row.names = FALSE)
 nodes <- read.csv(fn)
 if (file.exists(fn)) file.remove(fn) # clean up garbage
 
-## fix nodes
+# fix nodes
 
 nodes$Age <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Age)) # extract years only
 nodes$Experience <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Experience)) # extract years only
 nodes$Tenure <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Tenure)) # extract years only
-colnames(nodes)[10] <- "Occupation" # correct mislabeled column 
+nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "work.location", 
+                               "Education" = "education.level", "BroadEducationField" = "education.field", 
+                               "Occupation1" = "occupation.class", "Experience" = "work.experience",
+                               "Tenure" = "current.job.tenure"))
 
-## totalize scale items
+# totalize scale items
 
-### reverse specific survey items
+## reverse specific survey items
+
 nodes$Openness2 <- 10 - nodes$Openness2 # reverse openness scale item 2
 nodes$Conscientiousness1 <- 10 - nodes$Conscientiousness1 # reverse conscientious scale item 1
 nodes$Agreeableness2 <- 10 - nodes$Agreeableness2 # reverse agreeableness scale item 2
 
-### aggregate survey items. Rescale aggregated items between 0 and 1.
+## aggregate survey items. Rescale aggregated items between 0 and 1.
 
-nodes$Openness <- round((rowMeans(subset(nodes, select = c(Openness1,Openness2)), na.rm = TRUE)-1)/9, digits = 2) # openness
-nodes$Conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
-nodes$Agreeableness <- round((rowMeans(subset(nodes, select = c(Agreeableness1,Agreeableness2)), na.rm = TRUE)-1)/9, digits = 2) # agreeableness
-nodes$JobCompetence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
-nodes$SelfDetermination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
-nodes$Creativity <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
-nodes$Amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
-nodes$ExtrinsicRegulationSocial <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
-nodes$ExtrinsicRegulationMaterial <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
-nodes$IntrojectedRegulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
-nodes$IdentifiedRegulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
-nodes$IntrinsicMotivation <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
+nodes$personality.openness <- round((rowMeans(subset(nodes, select = c(Openness1,Openness2)), na.rm = TRUE)-1)/9, digits = 2) # openness
+nodes$personality.conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
+nodes$personality.agreeableness <- round((rowMeans(subset(nodes, select = c(Agreeableness1,Agreeableness2)), na.rm = TRUE)-1)/9, digits = 2) # agreeableness
+nodes$job.competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
+nodes$self.determination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
+nodes$creative.self.efficacy <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
+nodes$motivation.amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
+nodes$motivation.extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
+nodes$motivation.extrinsic.regulation.material <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
+nodes$motivation.introjected.regulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
+nodes$motivation.identified.regulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
+nodes$motivation.intrinsic <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
 
-## remove unwanted columns now we have totalized scores
+## remove unwanted columns now that we have totalized scores
 
-# column_names <- as.data.frame(names(nodes)) # get numbered list of columns
-# column_names # lists column names with corresponding column numbers
+node.summary <- subset(nodes, select=-c(3:4,13:51)) # drop unwanted columns using column numbers
+node.summary$vertex.id <- node.summary$id # duplicate id for future labelling purposes.
 
-node_summary <- subset(nodes, select=-c(3:4,13:51)) # drop unwanted columns using column numbers
-node_summary$label <- as.character(node_summary$id)
-
-# add organisation
+## add employer organisation using look-up table
 
 source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
-allowedVars <- c("Org")
-node_summary <- addNewData("lookupTable.csv", node_summary, allowedVars) # add descriptive fields
-
-# col_names <- as.data.frame(names(node_summary))
-# col_names
-# head(node_summary[,c(2,23,24)],18)
+allowedVars <- c("employer")
+node.summary <- addNewData("lookupTable.csv", node.summary, allowedVars) # add descriptive fields
+node.summary <- node.summary[,c(1,23,2,24,3:22)] # reorder columns to tidy things up
 
 # generate knowledge provider ties
 
-edge_all <- read_excel("surveydata.xlsx", sheet = 2) # read in relationships sheet from onasurvey downloaded workbook
-edge_knowledge <- filter(edge_all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
+edge.all <- read_excel("surveydata.xlsx", sheet = 2) # read in relationships sheet from onasurvey downloaded workbook
+edge.knowledge <- filter(edge.all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
 
-edge_knowledge[11:13] <- lapply(edge_knowledge[11:13], as.numeric)
-edge_knowledge$Codified <- 10 - edge_knowledge$Codified # reverse score level of documented knowledge
-edge_knowledge$tacit <- round((rowMeans(subset(edge_knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
-edge_knowledge <- subset(edge_knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
+edge.knowledge[11:13] <- lapply(edge.knowledge[11:13], as.numeric)
+edge.knowledge$Codified <- 10 - edge.knowledge$Codified # reverse score level of documented knowledge
+edge.knowledge$tacit <- round((rowMeans(subset(edge.knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
+edge.knowledge <- subset(edge.knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
 
-edge_tacit_knowledge <- filter(edge_knowledge, tacit >= 0.5) # filter predominantly tacit knowledge sharing ties
-edge_explicit_knowledge <- filter(edge_knowledge, tacit < 0.5) # filter predominantly explicit knowledge sharing ties
+edge.tacit.knowledge <- filter(edge.knowledge, tacit >= 0.5) # filter predominantly tacit knowledge sharing ties
+edge.explicit.knowledge <- filter(edge.knowledge, tacit < 0.5) # filter predominantly explicit knowledge sharing ties
 
 # generate knowledge provider graph from ties, nodes
 
-knowledge_net <- graph.data.frame(edge_knowledge, node_summary, directed = TRUE)
-tacit_knowledge_net <- graph.data.frame(edge_tacit_knowledge, node_summary, directed = TRUE)
-explicit_knowledge_net <- graph.data.frame(edge_explicit_knowledge, node_summary, directed = TRUE)
+knowledge.provider.net <- graph.data.frame(edge.knowledge, node.summary, directed = TRUE)
+tacit.knowledge.provider.net <- graph.data.frame(edge.tacit.knowledge, node.summary, directed = TRUE)
+explicit.knowledge.provider.net <- graph.data.frame(edge.explicit.knowledge, node.summary, directed = TRUE)
 
 # reverse direction of ties 
 
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
-knowledge_net <- graph.reverse(knowledge_net) # fix direction of knowledge provider ties
-tacit_knowledge_net <- graph.reverse(tacit_knowledge_net) # fix direction of knowledge provider ties
-explicit_knowledge_net <- graph.reverse(explicit_knowledge_net) # fix direction of knowledge provider ties
+knowledge.provider.net <- graph.reverse(knowledge.provider.net) # fix direction of knowledge provider ties
+tacit.knowledge.provider.net <- graph.reverse(tacit.knowledge.provider.net) # fix direction of knowledge provider ties
+explicit.knowledge.provider.net <- graph.reverse(explicit.knowledge.provider.net) # fix direction of knowledge provider ties
 
 # generate other edge lists
 
-edge_ideation <- filter(edge_all, relationship_set_idea_generation == 1) # extract idea generation with ties
-edge_ideation <- subset(edge_ideation, select = c(from, to)) # purge unwanted columns
-edge_realisation <- filter(edge_all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
-edge_realisation <- subset(edge_realisation, select = c(from, to)) # purge unwanted columns
-edge_affect_trust <- filter(edge_all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
-edge_affect_trust <- subset(edge_affect_trust, select = c(from, to)) # purge unwanted columns
-edge_cognition_trust <- filter(edge_all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
-edge_cognition_trust <- subset(edge_cognition_trust, select = c(from, to)) # purge unwanted columns
-edge_prior_relationships <- filter(edge_all, relationship_set_prior_relationships == 1) # extract prior relationship with ties
-edge_prior_relationships <- subset(edge_prior_relationships, select = c(from, to)) # purge unwanted columns, select = c(from, to)) # purge unwanted columns
-edge_report_to <- filter(edge_all, relationship_set_managers == 1) # extract manager/supervisor ties
-edge_report_to <- subset(edge_report_to, select = c(from, to)) # purge unwanted columns
+edge.idea.generation <- filter(edge.all, relationship_set_idea_generation == 1) # extract idea generation with ties
+edge.idea.generation <- subset(edge.idea.generation, select = c(from, to)) # purge unwanted columns
+edge.idea.realisation <- filter(edge.all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
+edge.idea.realisation <- subset(edge.idea.realisation, select = c(from, to)) # purge unwanted columns
+edge.affect.based.trust <- filter(edge.all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
+edge.affect.based.trust <- subset(edge.affect.based.trust, select = c(from, to)) # purge unwanted columns
+edge.cognition.based.trust <- filter(edge.all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
+edge.cognition.based.trust <- subset(edge.cognition.based.trust, select = c(from, to)) # purge unwanted columns
+edge.prior.relationship <- filter(edge.all, relationship_set_prior_relationships == 1) # extract prior relationship with ties
+edge.prior.relationship <- subset(edge.prior.relationship, select = c(from, to)) # purge unwanted columns, select = c(from, to)) # purge unwanted columns
+edge.report.to <- filter(edge.all, relationship_set_managers == 1) # extract manager/supervisor ties
+edge.report.to <- subset(edge.report.to, select = c(from, to)) # purge unwanted columns
 
 # generate other graphs
 
-idea_net <- graph.data.frame(edge_ideation, node_summary, directed = TRUE) # ideation network
-real_net <- graph.data.frame(edge_realisation, node_summary, directed = TRUE) # idea realisation network 
-affect_trust_net <- graph.data.frame(edge_affect_trust, node_summary, directed = TRUE) # affect-based trust network
-cog_trust_net <- graph.data.frame(edge_cognition_trust, node_summary, directed = TRUE) # cognition-based trust network
-prior_net <- graph.data.frame(edge_prior_relationships, node_summary, directed = TRUE) # prior relationships network
-report_to_net <- graph.data.frame(edge_report_to, node_summary, directed = TRUE) # manager network
-
-# create multiplex graph by stacking edge lists
-
-merged_edges <- rbind(edge_knowledge[,1:2], edge_ideation, edge_realisation, edge_affect_trust, 
-      edge_cognition_trust, edge_prior_relationships, edge_report_to)
-multiplex <- graph.data.frame(merged_edges, directed = TRUE) 
-multiplex <- simplify(multiplex, remove.multiple = FALSE, remove.loops = TRUE)
-E(multiplex)$weight <- count.multiple(multiplex)
+idea.generation.net <- graph.data.frame(edge.idea.generation, node.summary, directed = TRUE) # ideation network
+idea.realisation.net <- graph.data.frame(edge.idea.realisation, node.summary, directed = TRUE) # idea realisation network 
+affect.based.trust.net <- graph.data.frame(edge.affect.based.trust, node.summary, directed = TRUE) # affect-based trust network
+cognition.based.trust.net <- graph.data.frame(edge.cognition.based.trust, node.summary, directed = TRUE) # cognition-based trust network
+prior.relationship.net <- graph.data.frame(edge.prior.relationship, node.summary, directed = TRUE) # prior relationships network
+report.to.net <- graph.data.frame(edge.report.to, node.summary, directed = TRUE) # manager network
 
 # simplify graphs
 
-knowledge_net <- simplify(knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
-tacit_knowledge_net <- simplify(tacit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
-explicit_knowledge_net <- simplify(explicit_knowledge_net, remove.multiple = FALSE, remove.loops = TRUE)
-idea_net <- simplify(idea_net, remove.multiple = FALSE, remove.loops = TRUE)
-real_net <- simplify(real_net, remove.multiple = FALSE, remove.loops = TRUE)
-affect_trust_net <- simplify(affect_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
-cog_trust_net <- simplify(cog_trust_net, remove.multiple = FALSE, remove.loops = TRUE)
-prior_net <- simplify(prior_net, remove.multiple = FALSE, remove.loops = TRUE)
-report_to_net <- simplify(report_to_net, remove.multiple = FALSE, remove.loops = TRUE)
+graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
+                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", "prior.relationship.net", 
+                "report.to.net")
+
+for (g in graph.list){
+  eval(parse(text = paste0(g, ' <- simplify(', g,', remove.multiple = FALSE, remove.loops = TRUE)')))
+}
+
+# compute standard network statistics for each network 
+
+for (g in graph.list){
+  eval(parse(text = paste0('V(', g, ')$community <- membership(optimal.community(', g,'))'))) # modularity score
+  eval(parse(text = paste0('V(', g, ')$degree <- degree(', g, ', mode = "all")'))) # no. of ties
+  eval(parse(text = paste0('V(', g, ')$in.degree <- degree(', g, ', mode = "in")'))) # no. of incoming ties
+  eval(parse(text = paste0('V(', g, ')$out.degree <- degree(', g, ', mode = "out")'))) # no. of outgoing ties
+  eval(parse(text = paste0('V(', g, ')$closeness.centrality <- centralization.closeness(', g, ')$res'))) # central nodes = lower total distance from all other nodes
+  eval(parse(text = paste0('V(', g, ')$betweenness.centrality <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
+  eval(parse(text = paste0('V(', g, ')$eigen.vector.centrality <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
+  eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
+}
+
+# write pre-processed data to files

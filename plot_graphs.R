@@ -12,15 +12,16 @@ lo <- layout.fruchterman.reingold(knowledge.provider.net)
 employer <- factor(V(knowledge.provider.net)$employer) # extract employer organisations
 
 cols <- c("light green", "yellow","orange","red",
-          "lightblue","violet","pink")[as.numeric(factor(V(knowledge.provider.net)$employer))] # assign colours to employer
+          "lightblue","violet","pink") # assign colours to employer
 
 
 par(mfcol = c(3,3), mar = c(1,1,9,1)) # create 3x3 plot layout
 
+#png(filename = "network.png", width = 2048, height = 2048, units = "px")
 
 # 1
 plot(knowledge.provider.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[as.numeric(V(knowledge.provider.net)$employer)], 
+     vertex.color = cols[employer], 
      vertex.label = V(knowledge.provider.net)$vertex.id,
      edge.color = "black",
      edge.width = E(knowledge.provider.net)$tacit*5,
@@ -29,7 +30,7 @@ title("Knowledge Sharing", cex.main = 2)
 
 # 2     
 plot(explicit.knowledge.provider.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(explicit.knowledge.provider.net)$employer], 
+     vertex.color = cols[employer], 
      vertex.label = V(explicit.knowledge.provider.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -37,7 +38,7 @@ title("Explicit Knowledge Sharing", cex.main = 2)
 
 # 3
 plot(tacit.knowledge.provider.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(tacit.knowledge.provider.net)$employer], 
+     vertex.color = cols[employer], 
      vertex.label = V(tacit.knowledge.provider.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -45,7 +46,7 @@ title("Tacit Knowledge Sharing", cex.main = 2)
 
 # 4
 plot(idea.generation.net, edge.arrow.size = 0.05,
-    vertex.color = cols[V(idea.generation.net)$employer], 
+     vertex.color = cols[employer], 
     vertex.label = V(idea.generation.net)$vertex.id,
     edge.color = "black",
     layout = lo)
@@ -53,7 +54,7 @@ title("Idea Generation", cex.main = 2)
 
 # 5
 plot(idea.realisation.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(idea.realisation.net)$employer],
+     vertex.color = cols[employer],
      vertex.label = V(idea.realisation.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -61,7 +62,7 @@ title("Idea Realisation", cex.main = 2)
 
 # 6
 plot(affect.based.trust.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(affect.based.trust.net)$employer],
+     vertex.color = cols[employer],
      vertex.label = V(affect.based.trust.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -69,7 +70,7 @@ title("Affect-Based Trust", cex.main = 2)
 
 # 7
 plot(cognition.based.trust.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(cognition.based.trust.net)$employer],
+     vertex.color = cols[employer],
      vertex.label = V(cognition.based.trust.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -78,7 +79,7 @@ title("Cognition-Based Trust", cex.main = 2)
 
 # 8
 plot(prior.relationship.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(prior.relationship.net)$employer],
+     vertex.color = cols[employer],
      vertex.label = V(prior.relationship.net)$vertex.id,
      edge.color = "black",
      layout = lo)
@@ -87,7 +88,7 @@ title("Prior Relationships", cex.main = 2)
 
 # 9
 plot(report.to.net, edge.arrow.size = 0.05, 
-     vertex.color = cols[V(report.to.net)$employer],
+     vertex.color = cols[employer],
      vertex.label = V(report.to.net)$vertex.id,
      edge.color = "black",
      layout = lo)

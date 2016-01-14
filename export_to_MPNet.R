@@ -19,8 +19,8 @@ source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R
 # create list of graphs to be exported
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
-                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", "prior.relationship.net", 
-                "report.to.net")
+                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
+                "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
 # create and export adjacency matrix for each network
 

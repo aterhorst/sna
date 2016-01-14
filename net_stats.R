@@ -1,24 +1,12 @@
 #####################################################
 #                                                   #
-#            R script to generate standard          #
-#                 networks statistics               #
+#            R script to generate global            #
+#               networks statistics                 #
 #                                                   #
 #####################################################
 
 library(igraph)
 library(devtools)
-library(gtools)
-
-# set working directory
-
-# MAC <-c("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# PC <- c("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-# 
-# choice <- ask("Which computer are you using (PC = 1, MAC = 2): ")
-# choice <- as.numeric(choice)
-# 
-# if (choice == 1) eval(parse(text = paste0('setwd("', PC,'")'))) else eval(parse(text = paste0('setwd("', MAC,'")')))
-
 
 # pre-process data
 
@@ -26,39 +14,49 @@ source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R
 
 # create list of graphs to be crunched
 
-graph_list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
-           "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", "prior.relationship.net", 
-           "report.to.net")
-
-# compute standard network statistics for each network 
-
-for (g in graph_list){
-  eval(parse(text = paste0('V(', g, ')$comm <- membership(optimal.community(', g,'))'))) # modularity score
-  eval(parse(text = paste0('V(', g, ')$degree <- degree(', g, ', mode = "all")'))) # no. of ties
-  eval(parse(text = paste0('V(', g, ')$indegree <- degree(', g, ', mode = "in")'))) # no. of incoming ties
-  eval(parse(text = paste0('V(', g, ')$outdegree <- degree(', g, ', mode = "out")'))) # no. of outgoing ties
-  eval(parse(text = paste0('V(', g, ')$closeness <- centralization.closeness(', g, ')$res'))) # central nodes = lower total distance from all other nodes
-  eval(parse(text = paste0('V(', g, ')$betweenness <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
-  eval(parse(text = paste0('V(', g, ')$eigen <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
-  eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
-  eval(parse(text = paste0('node_att_', g, ' <- vertex.attributes(', g,')'))) # record stats into new data frame
-  eval(parse(text = paste0('write.csv(node_att_', g, ', "node_att_', g,'.csv")'))) # write out csv file
-  }
-
+graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
+           "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", 
+           "prior.relationship.net", "report.to.net")
 
 # compute assortativity coefficient for each network 
 
-assortativity <- data.frame("network" = character(),"assort_coeff" = numeric(), stringsAsFactors = FALSE)  # create empty data frame
+assortativity <- data.frame("network" = character(),"assort.employer" = numeric(), "assort.location" = numeric(), 
+                            "assort.occupation" = numeric(), "assort.education.level" = numeric(), 
+                            "assort.education.field" = numeric(), stringsAsFactors = FALSE)  # create empty data frame
 
-for (i in graph_list){
-  eval(parse(text = paste0('assort <- round(assortativity.nominal(', i,', factor(V(', i,')$Org), directed = TRUE), digits = 4)'))) # calculate assortativity
-  assortativity[nrow(assortativity) + 1,] <- c(i,assort) # add row
-  }
+for (i in graph.list){
+  eval(parse(text = paste0('assort1 <- round(assortativity.nominal(', i,', factor(V(', i,')$employer), directed = TRUE), digits = 4)'))) # calculate assortativity
+  eval(parse(text = paste0('assort2 <- round(assortativity.nominal(', i,', factor(V(', i,')$work.location), directed = TRUE), digits = 4)')))
+  eval(parse(text = paste0('assort3 <- round(assortativity.nominal(', i,', factor(V(', i,')$occupation.class), directed = TRUE), digits = 4)')))
+  eval(parse(text = paste0('assort4 <- round(assortativity.nominal(', i,', factor(V(', i,')$education.level), directed = TRUE), digits = 4)')))
+  eval(parse(text = paste0('assort5 <- round(assortativity.nominal(', i,', factor(V(', i,')$education.field), directed = TRUE), digits = 4)')))
+  assortativity[nrow(assortativity) + 1,] <- c(i,assort1, assort2, assort3, assort4, assort5) # add row
+}
+
+triads <- data.frame("network" = character(), "003" = integer(), "012" = integer(), "102" = integer(), "012D" = integer(), "021U" = integer(),
+                     "021C" = integer(), "111D" = integer(), "111U" = integer(), "030T" = integer(), "030C" = integer(), "201" = integer(),
+                     "120D" = integer(), "120U" = integer(), "120C" = integer(), "210" = integer(), "300" = integer(), stringsAsFactors = FALSE)
+
+for (i in graph.list){
+  eval(parse(text = paste0('census <- triad.census(', i, ')')))
+  triads[nrow(triads) + 1,] <- c(i,census)
+  
+}
+
+dyads <- data.frame("network" = character(), "mutual.connections" = integer(), "asymmetric.connections" = integer(), 
+                     "nil.connections" = integer(), stringsAsFactors = FALSE)
+
+for (i in graph.list){
+  eval(parse(text = paste0('dcensus <- dyad.census(', i, ')')))
+  dyads[nrow(dyads) + 1,] <- c(i,dcensus)
+  
+}
 
 # export data to csv
 
-write.csv(assortativity, "assortativity.csv")
-write.csv(node_summary, "nodesummary.csv")
+write.csv(assortativity, "assortativity.coefficients.csv", row.names = FALSE)
+write.csv(triads, "triad.census.csv", row.names = FALSE)
+write.csv(dyads, "dyad.census.csv", row.names = FALSE)
 
 
 

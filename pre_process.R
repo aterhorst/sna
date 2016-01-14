@@ -33,7 +33,8 @@ nodes$Tenure <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Tenure)) # extract year
 nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "work.location", 
                                "Education" = "education.level", "BroadEducationField" = "education.field", 
                                "Occupation1" = "occupation.class", "Experience" = "work.experience",
-                               "Tenure" = "current.job.tenure"))
+                               "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
+                               "Identity2" = "identification.group"))
 
 # totalize scale items
 
@@ -51,16 +52,20 @@ nodes$personality.agreeableness <- round((rowMeans(subset(nodes, select = c(Agre
 nodes$job.competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
 nodes$self.determination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
 nodes$creative.self.efficacy <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
-nodes$motivation.amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
-nodes$motivation.extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
-nodes$motivation.extrinsic.regulation.material <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
-nodes$motivation.introjected.regulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
-nodes$motivation.identified.regulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
-nodes$motivation.intrinsic <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
+nodes$motiv.amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
+nodes$motiv.extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
+nodes$motiv.extrinsic.regulation.material <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
+nodes$motiv.introjected.regulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
+nodes$motiv.identified.regulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
+nodes$motiv.intrinsic <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
+nodes$identification.org <- round((nodes$identification.org - 1)/9, digits = 2) # identification with organisation
+nodes$identification.group <- round((nodes$identification.group - 1)/9, digits = 2) # identification with group
 
 ## remove unwanted columns now that we have totalized scores
 
-node.summary <- subset(nodes, select=-c(3:4,13:51)) # drop unwanted columns using column numbers
+
+
+node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:51)) # drop unwanted columns using column numbers
 node.summary$vertex.id <- node.summary$id # duplicate id for future labelling purposes.
 
 ## add employer organisation using look-up table
@@ -132,13 +137,13 @@ for (g in graph.list){
 # compute standard network statistics for each network 
 
 for (g in graph.list){
-  eval(parse(text = paste0('V(', g, ')$community <- membership(optimal.community(', g,'))'))) # modularity score
   eval(parse(text = paste0('V(', g, ')$degree <- degree(', g, ', mode = "all")'))) # no. of ties
   eval(parse(text = paste0('V(', g, ')$in.degree <- degree(', g, ', mode = "in")'))) # no. of incoming ties
   eval(parse(text = paste0('V(', g, ')$out.degree <- degree(', g, ', mode = "out")'))) # no. of outgoing ties
   eval(parse(text = paste0('V(', g, ')$closeness.centrality <- centralization.closeness(', g, ')$res'))) # central nodes = lower total distance from all other nodes
   eval(parse(text = paste0('V(', g, ')$betweenness.centrality <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
   eval(parse(text = paste0('V(', g, ')$eigen.vector.centrality <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
+  eval(parse(text = paste0('V(', g, ')$local.transitivity <- transitivity(', g, ', type = "local")'))) # higher the constraint, the fewer the opportunities to broker
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
 }
 
@@ -146,6 +151,6 @@ for (g in graph.list){
 
 for (g in graph.list){
   eval(parse(text = paste0(g,'.vertex.attributes <- get.vertex.attribute(', g,')')))
-  eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'_attributes.csv", row.names = FALSE)')))
+  eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'.attr.csv", row.names = FALSE)')))
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }

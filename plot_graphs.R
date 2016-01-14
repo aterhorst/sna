@@ -1,3 +1,10 @@
+#####################################################
+#                                                   #
+#           R script to generate igraph             #
+#                    panel plot                     #
+#                                                   #
+#####################################################
+
 library(igraph)
 library(RColorBrewer)
 library(devtools)

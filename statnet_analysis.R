@@ -47,7 +47,9 @@ sociomatrixplot(knowledge.provider.net, labels = list(c(1:18),c(1:18)),
                 
 # ergm
 
-model.00 <- ergm(knowledge.provider.net~edges+mutual+
+knowledge.provider.model.00 <- ergm(knowledge.provider.net~edges+
+                mutual+
+                sender(base = c("personality.openness"))+
                 nodecov("motiv.intrinsic")+
                 nodecov("personality.openness")+
                 nodecov("personality.conscientiousness")+
@@ -70,42 +72,55 @@ model.00 <- ergm(knowledge.provider.net~edges+mutual+
 
                 
 
-model.01 <- ergm(knowledge.provider.net~edges+mutual+
+knowledge.model.01 <- ergm(knowledge.provider.net~edges+mutual+
                 edgecov(affect.based.trust.net)+
-                edgecov(cognition.based.trust.net)+
+                edgecov(cognition.based.trust.net))+
                 edgecov(prior.relationship.net)+
                 edgecov(report.to.net))
 
-model.02 <- ergm(explicit.knowledge.provider.net~edges+mutual+
+knowledge.model.02 <- ergm(explicit.knowledge.provider.net~edges+mutual+
                    edgecov(affect.based.trust.net)+
                    edgecov(cognition.based.trust.net)+
                    edgecov(prior.relationship.net)+
                    edgecov(report.to.net))
 
-model.03 <- ergm(tacit.knowledge.provider.net~edges+mutual+
+knowledge.model.03 <- ergm(tacit.knowledge.provider.net~edges+mutual+
                    edgecov(affect.based.trust.net)+
                    edgecov(cognition.based.trust.net)+
                    edgecov(prior.relationship.net)+
                    edgecov(report.to.net))
 
-model.04 <- ergm(idea.generation.net~edges+mutual+
-                   edgecov(knowledge.provider.net)+
-                   edgecov(affect.based.trust.net)+
-                   edgecov(cognition.based.trust.net)+
-                   edgecov(prior.relationship.net))
-
-model.05 <- ergm(idea.realisation.net~edges+mutual+
-                   edgecov(idea.generation.net)+
-                   edgecov(knowledge.provider.net)+
-                   edgecov(affect.based.trust.net)+
-                   edgecov(cognition.based.trust.net)+
-                   edgecov(prior.relationship.net))
-
-model.06 <- ergm(knowledge.provider.net~edges+mutual+
-                  transitive)
-
-model.gof <- gof(model~esp + distance, directed = TRUE)
-plot(model.gof)
 
 
 
+
+# analysis of idea.generation.net
+
+ideation.model.04 <- ergm(idea.generation.net~edges+mutual+
+                            edgecov(knowledge.provider.net)+
+                            edgecov(affect.based.trust.net)+
+                            edgecov(cognition.based.trust.net)+
+                            edgecov(prior.relationship.net))
+
+ideation.model.04.gof <- gof(ideation.model.04~idegree+odegree+espartners+distance)
+
+ideation.model.06 <- ergm(idea.generation.net~edges+
+                            gwesp(0.5),
+                            verbose = TRUE)
+                 
+
+
+
+
+plot(ideation.model.06.gof)
+
+
+# analysis of idea.realisation.net
+
+realisation.model.05 <- ergm(idea.realisation.net~edges+
+                               mutual+
+                               edgecov(idea.generation.net)+
+                               edgecov(knowledge.provider.net)+
+                               edgecov(affect.based.trust.net)+
+                               edgecov(cognition.based.trust.net)+
+                               edgecov(prior.relationship.net))

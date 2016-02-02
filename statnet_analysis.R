@@ -46,29 +46,31 @@ sociomatrixplot(knowledge.provider.net, labels = list(c(1:18),c(1:18)),
                 cex.lab = 0.5, diaglab = FALSE)
                 
 # ergm
-
 knowledge.provider.model.00 <- ergm(knowledge.provider.net~edges+
-                mutual+
-                sender(base = c("personality.openness"))+
-                nodecov("motiv.intrinsic")+
-                nodecov("personality.openness")+
-                nodecov("personality.conscientiousness")+
-                nodecov("personality.agreeableness")+
-                nodecov("self.determination")+
-                nodecov("motiv.extrinsic.regulation.social")+
-                nodecov("motiv.extrinsic.regulation.material")+
-                nodecov("motiv.identified.regulation")+
-                nodecov("motiv.introjected.regulation")+
-                nodecov("identification.org")+
-                nodecov("identification.group")+
-                nodematch("employer")+
-                nodematch("education.level")+
-                nodematch("education.field")+
-                nodematch("occupation.class")+
-                nodematch("work.location")+
-                absdiff("age")+
-                absdiff("work.experience")+
-                absdiff("current.job.tenure"))
+                                      mutual+
+                                      nodeocov("age")+
+                                      nodeocov("work.experience")+
+                                      nodeocov("self.determination")+
+                                      nodeocov("job.competence")+
+                                      nodeicov("job.competence")+
+                                      nodeocov("personality.openness")+
+                                      nodeocov("personality.conscientiousness")+
+                                      nodeicov("personality.agreeableness")+
+                                      nodeocov("motiv.extrinsic.regulation.social")+
+                                      nodeocov("motiv.extrinsic.regulation.material")+
+                                      nodeocov("motiv.identified.regulation")+
+                                      nodeocov("motiv.introjected.regulation")+
+                                      nodeocov("motiv.intrinsic")+                                     nodeicov("motiv.intrinsic")+
+                                      nodematch("employer")+
+                                      nodematch("education.level")+
+                                      nodematch("education.field")+
+                                      nodematch("occupation.class")+
+                                      nodematch("work.location")+
+                                      absdiff("age")+
+                                      absdiff("work.experience")+
+                                      absdiff("current.job.tenure"))
+
+
 
                 
 

@@ -19,7 +19,7 @@ lo <- layout.fruchterman.reingold(knowledge.provider.net)
 employer <- factor(V(knowledge.provider.net)$employer) # extract employer organisations
 
 cols <- c("light green", "yellow","orange","red",
-          "lightblue","violet","pink") # assign colours to employer
+          "lightblue","violet","pink", "cyan") # assign colours to employer
 
 
 par(mfcol = c(3,3), mar = c(1,1,9,1)) # create 3x3 plot layout
@@ -103,7 +103,7 @@ title("Reports To", cex.main = 2)
 
 
 
-title("SOCIAL NETWORKS - CASE STUDY 1", outer = TRUE, line = -2, cex.main = 2.25)
+title("SOCIAL NETWORKS - CASE STUDY 2", outer = TRUE, line = -2, cex.main = 2.25)
 
 
 # legend(1,1,legend=levels(employer),col=cols, pch = 16, cex=1.25)

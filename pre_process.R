@@ -13,9 +13,18 @@ library(devtools) # so we can use source_url
 
 # set working directory
 
+# Case study 1
+
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
+
+# Case study 2
+
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
+setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+
 
 # import nodes
 

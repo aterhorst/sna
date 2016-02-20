@@ -43,7 +43,7 @@ nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "w
                                "Education" = "education.level", "BroadEducationField" = "education.field", 
                                "Occupation1" = "occupation.class", "Experience" = "work.experience",
                                "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
-                               "Identity2" = "identification.group"))
+                               "Identity2" = "identification.group", "Identity3" = "identification.collab"))
 
 # totalize scale items
 
@@ -61,20 +61,21 @@ nodes$personality.agreeableness <- round((rowMeans(subset(nodes, select = c(Agre
 nodes$job.competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
 nodes$self.determination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
 nodes$creative.self.efficacy <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
-nodes$motiv.amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
-nodes$motiv.extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
-nodes$motiv.extrinsic.regulation.material <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
-nodes$motiv.introjected.regulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
-nodes$motiv.identified.regulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
-nodes$motiv.intrinsic <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
+nodes$amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
+nodes$extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
+nodes$extrinsic.regulation.material <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationMaterial1,ExtrinsicRegulationMaterial2,ExtrinsicRegulationMaterial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation material
+nodes$introjected.regulation <- round((rowMeans(subset(nodes, select = c(IntrojectedRegulation1,IntrojectedRegulation2,IntrojectedRegulation3,IntrojectedRegulation4)), na.rm = TRUE)-1)/9, digits = 2) # introjected regulation
+nodes$identified.regulation <- round((rowMeans(subset(nodes, select = c(IdentifiedRegulation1,IdentifiedRegulation2,IdentifiedRegulation3)), na.rm = TRUE)-1)/9, digits = 2) # identified regulation
+nodes$intrinsic.motivation <- round((rowMeans(subset(nodes, select = c(IntrinsicMotivation1,IntrinsicMotivation2,IntrinsicMotivation3)), na.rm = TRUE)-1)/9, digits = 2) # intrinsic motivation
 nodes$identification.org <- round((nodes$identification.org - 1)/9, digits = 2) # identification with organisation
 nodes$identification.group <- round((nodes$identification.group - 1)/9, digits = 2) # identification with group
+nodes$identification.collab <- round((nodes$identification.collab - 1)/9, digits = 2) # identification with collaboration
 
 ## remove unwanted columns now that we have totalized scores
 
 
 
-node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:51)) # drop unwanted columns using column numbers
+node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:49,51)) # drop unwanted columns using column numbers
 node.summary$vertex.id <- node.summary$id # duplicate id for future labelling purposes.
 
 ## add employer organisation using look-up table
@@ -163,3 +164,7 @@ for (g in graph.list){
   eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'.attr.csv", row.names = FALSE)')))
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }
+
+# Check correlation
+
+corrplot(M, type = "upper", order = "hclust", method = "pie",col=brewer.pal(n=8, name="RdBu"))

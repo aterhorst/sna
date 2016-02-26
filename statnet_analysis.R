@@ -28,7 +28,7 @@ graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "expli
 
 for (g in graph.list){
   eval(parse(text = paste0('load("', g,'.rda")')))
-  eval(parse(text = paste0(g,' <- asNetwork(', g,')')))
+  eval(parse(text = paste0(g,'.sna <- asNetwork(', g,')')))
 }
 
 # plotting

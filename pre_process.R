@@ -17,13 +17,13 @@ library(devtools) # so we can use source_url
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
+setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 # Case study 2
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
 
 # import nodes
@@ -165,6 +165,3 @@ for (g in graph.list){
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }
 
-# Check correlation
-
-corrplot(M, type = "upper", order = "hclust", method = "pie",col=brewer.pal(n=8, name="RdBu"))

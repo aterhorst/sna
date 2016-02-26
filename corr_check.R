@@ -7,11 +7,27 @@
 
 library(RColorBrewer)
 library(corrplot)
+library(devtools)
 
-# source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
+# set working directory
+
+# Case study 1
+
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
+
+# Case study 2
+
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
+setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
 
-continuous <- node.summary[,c(4,9:25)]
+source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
+
+
+continuous <- na.omit(node.summary[,c(4,9:25)])
 correlation <- cor(continuous)
 
 corrplot(correlation, type = "upper", order = "hclust", method = "pie",col=brewer.pal(n=8, name="RdBu"))

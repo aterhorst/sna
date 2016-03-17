@@ -41,8 +41,8 @@ nodes$Experience <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Experience)) # extr
 nodes$Tenure <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Tenure)) # extract years only
 nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "work.location", 
                                "Education" = "education.level", "BroadEducationField" = "education.field", 
-                               "Occupation1" = "occupation.class", "Experience" = "work.experience",
-                               "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
+                               "Occupation1" = "occupation.class", "Occupation" = "occupation.class", 
+                               "Experience" = "work.experience", "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
                                "Identity2" = "identification.group", "Identity3" = "identification.collab"))
 
 # totalize scale items
@@ -59,7 +59,7 @@ nodes$personality.openness <- round((rowMeans(subset(nodes, select = c(Openness1
 nodes$personality.conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
 nodes$personality.agreeableness <- round((rowMeans(subset(nodes, select = c(Agreeableness1,Agreeableness2)), na.rm = TRUE)-1)/9, digits = 2) # agreeableness
 nodes$job.competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
-nodes$self.determination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
+nodes$job.autonomy <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
 nodes$creative.self.efficacy <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
 nodes$amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
 nodes$extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
@@ -94,21 +94,21 @@ edge.knowledge$Codified <- 10 - edge.knowledge$Codified # reverse score level of
 edge.knowledge$tacit <- round((rowMeans(subset(edge.knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
 edge.knowledge <- subset(edge.knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
 
-edge.tacit.knowledge <- filter(edge.knowledge, tacit >= 0.5) # filter predominantly tacit knowledge sharing ties
-edge.explicit.knowledge <- filter(edge.knowledge, tacit < 0.5) # filter predominantly explicit knowledge sharing ties
+edge.tacit.knowledge <- filter(edge.knowledge, tacit < 0.5) # filter predominantly tacit knowledge sharing ties
+edge.explicit.knowledge <- filter(edge.knowledge, tacit > 0.5)
 
 # generate knowledge provider graph from ties, nodes
 
 knowledge.provider.net <- graph.data.frame(edge.knowledge, node.summary, directed = TRUE)
-tacit.knowledge.provider.net <- graph.data.frame(edge.tacit.knowledge, node.summary, directed = TRUE)
-explicit.knowledge.provider.net <- graph.data.frame(edge.explicit.knowledge, node.summary, directed = TRUE)
+tacit.knowledge.net <- graph.data.frame(edge.tacit.knowledge, node.summary, directed = TRUE)
+explicit.knowledge.net <- graph.data.frame(edge.explicit.knowledge, node.summary, directed = TRUE)
 
 # reverse direction of ties 
 
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
 knowledge.provider.net <- graph.reverse(knowledge.provider.net) # fix direction of knowledge provider ties
-tacit.knowledge.provider.net <- graph.reverse(tacit.knowledge.provider.net) # fix direction of knowledge provider ties
-explicit.knowledge.provider.net <- graph.reverse(explicit.knowledge.provider.net) # fix direction of knowledge provider ties
+tacit.knowledge.net <- graph.reverse(tacit.knowledge.net) # fix direction of knowledge provider ties
+explicit.knowledge.net <- graph.reverse(explicit.knowledge.net)
 
 # generate other edge lists
 
@@ -136,8 +136,9 @@ report.to.net <- graph.data.frame(edge.report.to, node.summary, directed = TRUE)
 
 # simplify graphs
 
-graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
-                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", "cognition.based.trust.net", "prior.relationship.net", 
+graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
+                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
+                "cognition.based.trust.net", "prior.relationship.net", 
                 "report.to.net")
 
 for (g in graph.list){
@@ -161,7 +162,7 @@ for (g in graph.list){
 
 for (g in graph.list){
   eval(parse(text = paste0(g,'.vertex.attributes <- get.vertex.attribute(', g,')')))
-  eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'.attr.csv", row.names = FALSE)')))
+  eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'.csv", row.names = FALSE)')))
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }
 

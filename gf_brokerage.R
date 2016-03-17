@@ -16,7 +16,7 @@ library(network)
 library(sna)
 
 
-graph.list <- c("knowledge.provider.net.sna", "idea.generation.net.sna", "idea.realisation.net.sna")
+graph.list <- c("knowledge.provider.net.sna", "explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.generation.net.sna", "idea.realisation.net.sna")
 
 for (g in graph.list){
   eval(parse(text = paste0('load("', g,'.rda")')))

@@ -18,7 +18,7 @@ source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R
 
 # create list of graphs to be exported
 
-graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
+graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
                 "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
@@ -33,10 +33,10 @@ for (g in graph.list){
 
 continuous.data <- subset(node.summary, select = c(age,work.experience,current.job.tenure,
                                                    personality.openness, personality.conscientiousness,
-                                                   personality.agreeableness, job.competence, self.determination,
-                                                   creative.self.efficacy, motivation.amotivation, motivation.extrinsic.regulation.social,
-                                                   motivation.extrinsic.regulation.material,motivation.introjected.regulation,
-                                                   motivation.identified.regulation, motivation.intrinsic)) # select columns with continuous data
+                                                   personality.agreeableness, job.competence, job.autonomy,
+                                                   creative.self.efficacy, amotivation, extrinsic.regulation.social,
+                                                   extrinsic.regulation.material,introjected.regulation,
+                                                   identified.regulation, intrinsic.motivation)) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 categorical.data <- subset(node.summary, select = c(work.location, education.level, education.field,

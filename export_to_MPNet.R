@@ -16,11 +16,18 @@ library(Matrix)
 
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # create graphs
 
-# create list of graphs to be exported
+# remove nodes with NAs
+
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
                 "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
+
+# delete vertices with NA values
+
+for(g in graph.list){
+  eval(parse(text = paste0(g, ' <- delete.vertices(', g, ', V(', g,')$vertex.id > 26)')))
+}
 
 # create and export adjacency matrix for each network
 
@@ -31,19 +38,22 @@ for (g in graph.list){
 
 # generate node attribute tables
 
-continuous.data <- subset(node.summary, select = c(age,work.experience,current.job.tenure,
+ns <- filter(node.summary, vertex.id <= 26)
+
+continuous.data <- subset(ns, select = c(age,work.experience,current.job.tenure,
                                                    personality.openness, personality.conscientiousness,
                                                    personality.agreeableness, job.competence, job.autonomy,
+                                                   identification.org, identification.group, identification.collab,
                                                    creative.self.efficacy, amotivation, extrinsic.regulation.social,
                                                    extrinsic.regulation.material,introjected.regulation,
                                                    identified.regulation, intrinsic.motivation)) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-categorical.data <- subset(node.summary, select = c(work.location, education.level, education.field,
-                                                    occupation.class)) # select columns with categorical data
+categorical.data <- subset(ns, select = c(work.location, education.level, education.field,
+                                                    occupation.class, employer)) # select columns with categorical data
 write.table(categorical.data, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-binary.data <- subset(node.summary, select = c(gender))
+binary.data <- subset(ns, select = c(gender))
 write.table(binary.data, "binary_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 # create dyadic covariate file

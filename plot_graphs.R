@@ -27,13 +27,13 @@ employer <- factor(V(knowledge.provider.net)$employer) # extract employer organi
 cols <- c("light green", "yellow","orange","red",
           "lightblue","violet","pink", "aquamarine") # assign colours to employer
 
-vs <- 12 # vertex symbol size
-as <- 0.01 # edge arrow size
+vs <- 10 # vertex symbol size
+as <- 0.005 # edge arrow size
 vl <- 4 # vertex label size
 ts <- 6 #subtitle size
 ms <- 10 # main title size
 
-par(mfcol = c(3,3), mar = c(1,1,5,1), oma = c(2,2,10,2)) # create 3x3 plot layout
+par(mfcol = c(3,3), mar = c(1,1,6,1), oma = c(2,2,12,2)) # create 3x3 plot layout
 
 #png(filename = "network.png", width = 2048, height = 2048, units = "px")
 

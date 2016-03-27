@@ -15,11 +15,12 @@ library(devtools)
 # source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
 
 
-# lo <- layout.fruchterman.reingold(knowledge.provider.net)
-lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
-                  seed = matrix(runif(vcount(knowledge.provider.net) * 2), 
-                  ncol = 2), options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
-                  fixed = NULL, dim = 2)
+lo <- layout.fruchterman.reingold(knowledge.provider.net)
+
+# lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
+#                  seed = matrix(runif(vcount(knowledge.provider.net) * 2), 
+#                  ncol = 2), options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
+#                 fixed = NULL, dim = 2)
  
  
 employer <- factor(V(knowledge.provider.net)$employer) # extract employer organisations
@@ -27,20 +28,20 @@ employer <- factor(V(knowledge.provider.net)$employer) # extract employer organi
 cols <- c("light green", "yellow","orange","red",
           "lightblue","violet","pink", "aquamarine") # assign colours to employer
 
-# vs <- 10 # vertex symbol size
+vs <- 5 # vertex symbol size
 as <- 0.005 # edge arrow size
 vl <- 4 # vertex label size
 ts <- 6 #subtitle size
 ms <- 10 # main title size
 
-par(mfcol = c(1,3), mar = c(1,1,6,1), oma = c(2,2,12,2)) # create 3x3 plot layout
+par(mfcol = c(1,3), mar = c(1,1,3,1), oma = c(2,2,4,2)) # create 3x3 plot layout
 
 
 
 # 1
 plot(knowledge.provider.net, edge.arrow.size = as, 
      vertex.color = cols[employer], 
-     vertex.size = vs,
+     vertex.size = (1.5/V(knowledge.provider.net)$constraint)*vs,
      vertex.label.cex = vl, 	 
      vertex.label = V(knowledge.provider.net)$vertex.id,
      edge.color = "black",
@@ -51,7 +52,7 @@ title("Knowledge Sharing", cex.main = ts)
 # 2     
 plot(explicit.knowledge.net, edge.arrow.size = as, 
      vertex.color = cols[employer], 
-     vertex.size = vs,
+     vertex.size = na.omit(1.5/V(explicit.knowledge.net)$constraint)*vs,
      vertex.label.cex = vl, 
      vertex.label = V(explicit.knowledge.net)$vertex.id,
      edge.color = "black",
@@ -61,81 +62,18 @@ title("Explicit Knowledge Sharing", cex.main = ts)
 # 3
 plot(tacit.knowledge.net, edge.arrow.size = as, 
      vertex.color = cols[employer], 
-     vertex.size = vs,
+     vertex.size = (1.5/V(tacit.knowledge.net)$constraint)*vs,
      vertex.label.cex = vl, 
      vertex.label = V(tacit.knowledge.net)$vertex.id,
      edge.color = "black",
      layout = lo)
 title("Tacit Knowledge Sharing", cex.main = ts)
 
-# 4
-plot(idea.generation.net, edge.arrow.size = as,
-     vertex.color = cols[employer], 
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(idea.generation.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Idea Generation", cex.main = ts)
 
-# 5
-plot(idea.realisation.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(idea.realisation.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Idea Realisation", cex.main = ts)
-
-# 6
-plot(affect.based.trust.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(affect.based.trust.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Affect-Based Trust", cex.main = ts)
-
-# 7
-plot(cognition.based.trust.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(cognition.based.trust.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Cognition-Based Trust", cex.main = ts)
-
-
-# 8
-plot(prior.relationship.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(prior.relationship.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Prior Relationships", cex.main = ts)
-
-
-# 9
-plot(report.to.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
-     vertex.size = vs,
-     vertex.label.cex = vl, 
-     vertex.label = V(report.to.net)$vertex.id,
-     edge.color = "black",
-     layout = lo)
-title("Reports To", cex.main = ts)
-
-
-
-title("SOCIAL NETWORKS - CASE STUDY 2", outer = TRUE, line = 2, cex.main = ms)
+title("CASE STUDY 1", outer = TRUE, line = 2, cex.main = ms)
 
 
 # legend(1,1,legend=levels(employer),col=cols, pch = 16, cex=1.25)
 
-dev.print(device = png, width = 6000, height = 6000, units = "px", "networks.png")
+dev.print(device = png, width = 6000, height = 1500, units = "px", "networks.png")
 

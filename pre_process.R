@@ -16,14 +16,14 @@ library(devtools) # so we can use source_url
 # Case study 1
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 # Case study 2
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
 
 # import nodes
@@ -96,8 +96,8 @@ edge.knowledge$Codified <- 10 - edge.knowledge$Codified # reverse score level of
 edge.knowledge$tacit <- round((rowMeans(subset(edge.knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
 edge.knowledge <- subset(edge.knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
 
-edge.tacit.knowledge <- filter(edge.knowledge, tacit < 0.5) # filter predominantly tacit knowledge sharing ties
-edge.explicit.knowledge <- filter(edge.knowledge, tacit > 0.5)
+edge.tacit.knowledge <- filter(edge.knowledge, tacit > 0.5) # filter predominantly tacit knowledge sharing ties
+edge.explicit.knowledge <- filter(edge.knowledge, tacit < 0.5)
 
 # generate knowledge provider graph from ties, nodes
 

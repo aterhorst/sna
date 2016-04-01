@@ -8,9 +8,9 @@ setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # 
 
 # Case study 2
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
 library(network)
 library(sna)
@@ -68,34 +68,28 @@ gf <- rbind(kp,ekp,tkp,ig,ir)
 
 # plot graphs
 
-
-ggplot(as.data.frame(gf.knowledge.provider.net.sna$raw.nli), 
-       aes(x=factor(gf.knowledge.provider.net.sna$raw.nli[,1:5])))+
-  geom_bar()
-
-
 b <- c("w_I","w_O","b_IO","b_OI","b_O")
 
 par(mfrow = c(5,1), mar = c(2, 1, 2, 1), oma = c(2,2,4,2) )
 
 barplot(gf.knowledge.provider.net.sna$raw.nli[,b], 
-        col = "black", ylim=c(0,200))
+        col = "black", ylim=c(0,500))
 title("brokerage of general knowledge", line = -1)
 
 barplot(gf.explicit.knowledge.net.sna$raw.nli[,b], 
-        col = "black", ylim=c(0,100))
+        col = "black", ylim=c(0,250))
 title("brokerage of predominantly explicit knowledge", line = -1)
 
 barplot(gf.tacit.knowledge.net.sna$raw.nli[,b], 
-        col = "black", ylim=c(0,100))
+        col = "black", ylim=c(0,250))
 title("brokerage of predominantly tacit knowledge", line = -1)
 
 barplot(gf.idea.generation.net.sna$raw.nli[,b], 
-        col = "black", ylim=c(0,100))
+        col = "black", ylim=c(0,250))
 title("brokerage of ideas", line = -1)
 
 barplot(gf.idea.realisation.net.sna$raw.nli[,b], 
-        col = "black", ylim=c(0,100))
+        col = "black", ylim=c(0,250))
 title("brokerage of solutions", line = -1)
 
-title("CASE STUDY 1", outer = TRUE, line = 2, cex.main = 2)
+title("CASE STUDY 2", outer = TRUE, line = 2, cex.main = 2)

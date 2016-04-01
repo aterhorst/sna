@@ -22,7 +22,7 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home P
 
 # load and convert igraph objects saved as .rda files
 
-graph.list <- c("knowledge.provider.net", "tacit.knowledge.provider.net", "explicit.knowledge.provider.net", 
+graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
                 "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
@@ -30,6 +30,13 @@ for (g in graph.list){
   eval(parse(text = paste0('load("', g,'.rda")')))
   eval(parse(text = paste0(g,'.sna <- asNetwork(', g,')')))
 }
+
+graph.list <- c("knowledge.provider.net.sna", "explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.generation.net.sna", "idea.realisation.net.sna")
+
+for (g in graph.list){
+  eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
+}
+
 
 # plotting
 

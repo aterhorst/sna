@@ -14,26 +14,27 @@ library(devtools)
 
 # source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
 
-
-# lo <- layout.fruchterman.reingold(knowledge.provider.net)
-lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
-                  seed = matrix(runif(vcount(knowledge.provider.net) * 2), 
-                  ncol = 2), options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
-                  fixed = NULL, dim = 2)
+lo <- layout_nicely(knowledge.provider.net)
+# lo <- layout_with_fr(knowledge.provider.net) 
+#  layout.fruchterman.reingold(knowledge.provider.net)
+# lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
+#                  seed = matrix(runif(vcount(knowledge.provider.net) * 2), 
+#                  ncol = 2), options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
+#                  fixed = NULL, dim = 2)
  
  
 employer <- factor(V(knowledge.provider.net)$employer) # extract employer organisations
 
-cols <- c("light green", "yellow","orange","red",
-          "lightblue","violet","pink", "aquamarine") # assign colours to employer
+
+cols <- colorRampPalette(c("light green", "yellow","orange","red","lightblue","violet","pink", "aquamarine"))(23) 
 
 vs <- 10 # vertex symbol size
 as <- 0.005 # edge arrow size
 vl <- 4 # vertex label size
-ts <- 6 #subtitle size
-ms <- 10 # main title size
+ts <- 5 #subtitle size
+ms <- 8 # main title size
 
-par(mfcol = c(3,3), mar = c(1,1,6,1), oma = c(2,2,12,2)) # create 3x3 plot layout
+par(mfcol = c(3,3), mar = c(1,1,6,1), oma = c(1,1,10,1)) # create 3x3 plot layout
 
 #png(filename = "network.png", width = 2048, height = 2048, units = "px")
 
@@ -132,7 +133,7 @@ title("Reports To", cex.main = ts)
 
 
 
-title("SOCIAL NETWORKS - CASE STUDY 2", outer = TRUE, line = 2, cex.main = ms)
+title("SOCIAL NETWORKS - CASE STUDY 3", outer = TRUE, line = 1, cex.main = ms)
 
 
 # legend(1,1,legend=levels(employer),col=cols, pch = 16, cex=1.25)

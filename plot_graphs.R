@@ -10,7 +10,7 @@ library(RColorBrewer)
 library(devtools)
 
 #setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
- setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+#  setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 
 # source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
 
@@ -28,18 +28,19 @@ employer <- factor(V(knowledge.provider.net)$employer) # extract employer organi
 
 cols <- colorRampPalette(c("light green", "yellow","orange","red","lightblue","violet","pink", "aquamarine"))(23) 
 
-vs <- 10 # vertex symbol size
-as <- 0.005 # edge arrow size
-vl <- 4 # vertex label size
+vs <- 6 # vertex symbol size
+as <- 0.003 # edge arrow size
+vl <- 3 # vertex label size
 ts <- 5 #subtitle size
 ms <- 8 # main title size
 
-par(mfcol = c(3,3), mar = c(1,1,6,1), oma = c(1,1,10,1)) # create 3x3 plot layout
+par(mfcol = c(3,3), mar = c(0,0,4,0), oma = c(1,1,12,1)) # create 3x3 plot layout
+
 
 #png(filename = "network.png", width = 2048, height = 2048, units = "px")
 
 # 1
-plot(knowledge.provider.net, edge.arrow.size = as, 
+plot(knowledge.provider.net, edge.arrow.size = 0.005, 
      vertex.color = cols[employer], 
      vertex.size = vs,
      vertex.label.cex = vl, 	 
@@ -122,10 +123,10 @@ title("Prior Relationships", cex.main = ts)
 
 
 # 9
-plot(report.to.net, edge.arrow.size = as, 
-     vertex.color = cols[employer],
+plot(report.to.net, vertex.color = cols[employer],
      vertex.size = vs,
-     vertex.label.cex = vl, 
+     vertex.label.cex = vl,
+     edge.arrow.size = as,
      vertex.label = V(report.to.net)$vertex.id,
      edge.color = "black",
      layout = lo)

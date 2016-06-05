@@ -2,12 +2,43 @@
 
 library(ggplot2)
 library(plyr)
+library(reshape2)
 
-# load categorical data generated using export_to_MPNet
+# load categorical data generated using export_to_MPNet.R
 
 hf_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF/categorical_data.txt", sep = "", header = T))
 amr_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR/categorical_data.txt", sep = "", header = T))
 gihh_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH/categorical_data.txt", sep = "", header = T))
+
+# load continuous data generated using export_to_MPNet.R
+
+hf_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", sep = "", header = T))
+amr_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", sep = "", header = T))
+gihh_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", sep = "", header = T))
+
+# merge continuous data
+
+hf_cont$case <- 1
+amr_cont$case <-2
+gihh_cont$case <-3
+
+cont <- rbind(hf_cont,amr_cont,gihh_cont)
+cont <- cont[,c(1:3,19)]
+
+x <- ddply(cont,"case", summarise, 
+      N = length(age),
+      mean.age = mean(age),
+      mean.experience = mean(work.experience),
+      mean.tenure = mean(current.job.tenure),
+      sd.age = sd(age),
+      sd.experience = sd(work.experience),
+      sd.tenure = sd(current.job.tenure),
+      range.age = max(age) - min(age),
+      range.experience = max(work.experience) - min(work.experience),
+      range.tenure = max(current.job.tenure) - min(current.job.tenure))
+
+
+
 
 # compute frequency - education
 
@@ -83,4 +114,17 @@ ggplot(field_rose, aes(factor(education.field), freq, fill = factor(education.fi
                       labels= ed_field)
 
 # boxplot
+
+cont$case <- as.factor(cont$case)
+
+dat.m <- melt(cont,id.vars = 'case', measure.vars=c('age','work.experience','current.job.tenure'))
+
+p <- ggplot(dat.m) +
+  geom_boxplot(aes(x=factor(variable), y = value, fill = variable)) +
+  facet_wrap(~case, labeller = as_labeller(case_id)) +
+  scale_y_continuous("Years") +
+  scale_x_discrete(name = "", labels = c("Age", "Work\nExperience", "Job\nTenure")) +
+  theme(legend.position = "none")
+
+p                      
 

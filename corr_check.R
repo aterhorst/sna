@@ -9,25 +9,13 @@ library(RColorBrewer)
 library(corrplot)
 library(devtools)
 
-# set working directory
+# pre-process network data and export files for MPNet. Load exported files for correlation analysis.
 
-# Case study 1
+amr <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", header = T, sep = ""))
+hf <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", header = T, sep = ""))
+gihh <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", header = T, sep = ""))
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
-
-# Case study 2
-
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
-
-
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # pre-process data
-
-
-continuous <- na.omit(node.summary[,c(4,9:25)])
+continuous <- rbind(hf,amr,gihh) # create single data set
 correlation <- cor(continuous)
 
 corrplot(correlation, type = "upper", order = "hclust", method = "pie",col=brewer.pal(n=8, name="RdBu"))
@@ -55,12 +43,12 @@ cor.mtest <- function(mat, ...) {
 
 p.mat <- cor.mtest(continuous)
 
-# Highlight insignificant value according to the significant level
+# Highlight insignificant value according to the significance level
 
 corrplot(correlation, type="upper", order="hclust", 
          p.mat = p.mat, sig.level = 0.01)
 
 # Leave blank on no significant coefficient
 
-corrplot(correlation, type="upper", order="hclust", 
+corrplot(correlation, type="upper", order="original", 
          p.mat = p.mat, sig.level = 0.01, insig = "blank")

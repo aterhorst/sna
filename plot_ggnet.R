@@ -4,11 +4,8 @@ library(sna)
 library(intergraph)
 library(ggplot2)
 library(ggnet)
-library(ggnetwork)
-library(RColorBrewer)
 library(randomcoloR)
 library(gridExtra)
-library(cowplot)
 
 # set working directory
 
@@ -43,13 +40,13 @@ for (g in graph.list){
 #Create a custom color scale
 
 library(randomcoloR)
-n <- 23 # number of employers (varies)
+n <- 23 # number of employers (varies according to case study)
 col.scale <- distinctColorPalette(n)
 
-x = gplot.layout.fruchtermanreingold(knowledge.provider.net.sna, NULL)
+x = gplot.layout.kamadakawai(knowledge.provider.net.sna, NULL) # use densest network. 
 ns <- 6
 ls <- 2
-ag <- 0.65
+ag <- 0.11
 as <- 3
 es <- 0.1
 ec <- "grey50"

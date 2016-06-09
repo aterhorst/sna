@@ -3,18 +3,19 @@
 library(ggplot2)
 library(plyr)
 library(reshape2)
+library(ggthemes)
 
 # load categorical data generated using export_to_MPNet.R
 
-hf_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF/categorical_data.txt", sep = "", header = T))
-amr_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR/categorical_data.txt", sep = "", header = T))
-gihh_cat <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH/categorical_data.txt", sep = "", header = T))
+hf_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/HF/categorical_data.txt", sep = "", header = T))
+amr_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/AMR/categorical_data.txt", sep = "", header = T))
+gihh_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/GIHH/categorical_data.txt", sep = "", header = T))
 
 # load continuous data generated using export_to_MPNet.R
 
-hf_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", sep = "", header = T))
-amr_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", sep = "", header = T))
-gihh_cont <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", sep = "", header = T))
+hf_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", sep = "", header = T))
+amr_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", sep = "", header = T))
+gihh_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", sep = "", header = T))
 
 # merge continuous data
 
@@ -70,7 +71,7 @@ field_rose <- rbind(hf_f,amr_f,gihh_f)
 
 case_id <- c("1" = "Case 1", "2" = "Case 2", "3" = "Case 3")
 
-ed_level <- c("Secondary Education","Certificate Level","[Advanced] Diploma",
+ed_level <- c("Secondary Education","Certificate Level","Diploma/Advanced Diploma",
               "Bachelors Degree","Graduate Certificate/Diploma", 
               "Masters Degree","Doctoral Degree")
 
@@ -85,15 +86,17 @@ ed_field <- c("Natural & Physical Sciences", "information Technology", "Engineer
 
 ggplot(ed_rose, aes(factor(education.level), freq, fill = factor(education.level))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
-  geom_text(aes(y = freq + 0.75,label = freq)) +
+  geom_text(aes(y = freq + 0.75, label = freq)) +
   coord_polar() +
-  scale_y_continuous(trans = "log2", breaks = c(1,2,4,8,16,32)) +
+  scale_y_continuous(trans = "sqrt", breaks = c(1,4,9,16,25,36)) +  
+#  scale_y_continuous(trans = "log2", breaks = c(1,2,4,8,16,32)) +
   # theme_bw() +
+  theme_economist() +
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
-  scale_fill_discrete(name="Education Level",
+  scale_fill_discrete(name="LEVEL OF EDUCATION",
                       breaks=c(2:8),
                       labels= ed_level)
 
@@ -103,13 +106,14 @@ ggplot(field_rose, aes(factor(education.field), freq, fill = factor(education.fi
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
   geom_text(aes(y = freq + 0.75,label = freq)) +
   coord_polar() +
-  scale_y_continuous() +
+  scale_y_continuous(breaks = c(4,8,12,16)) +
+  theme_economist() +
   # theme_bw() +
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
         axis.title.y = element_blank()) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
-  scale_fill_discrete(name="Education Field",
+  scale_fill_discrete(name="FIELD OF EDUCATION",
                       breaks=c(1:12),
                       labels= ed_field)
 
@@ -120,10 +124,14 @@ cont$case <- as.factor(cont$case)
 dat.m <- melt(cont,id.vars = 'case', measure.vars=c('age','work.experience','current.job.tenure'))
 
 p <- ggplot(dat.m) +
-  geom_boxplot(aes(x=factor(variable), y = value, fill = variable)) +
+  geom_violin(color="gray",aes(x=factor(variable), y = value)) +
+  geom_boxplot(aes(x=factor(variable), y = value, fill = variable), width = 0.1, outlier.colour = NA) +
+  geom_jitter(alpha=0.5, aes(x=factor(variable), y = value), color= "black",position = position_jitter(width = .4))+
   facet_wrap(~case, labeller = as_labeller(case_id)) +
-  scale_y_continuous("Years") +
+  scale_y_continuous("Years", breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70)) +
   scale_x_discrete(name = "", labels = c("Age", "Work\nExperience", "Job\nTenure")) +
+  theme_economist() +
+#  theme_classic()
   theme(legend.position = "none")
 
 p                      

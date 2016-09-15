@@ -2,6 +2,7 @@
 #                                                   #
 #      R script to generate igraph networks         #
 #  from raw .xlsx file downloaded from onasurveys   #
+#               Version 2016-09-15                  #      
 #                                                   #
 #####################################################
 
@@ -9,6 +10,7 @@ library(plyr)
 library(dplyr)
 library(readxl)
 library(igraph)
+library(rgexf)
 library(devtools) # so we can use source_url
 
 # set working directory
@@ -16,7 +18,7 @@ library(devtools) # so we can use source_url
 # Case study 1
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 # Case study 2
@@ -27,7 +29,7 @@ library(devtools) # so we can use source_url
 
 # Case study 3
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
@@ -79,11 +81,15 @@ nodes$identification.org <- round((nodes$identification.org - 1)/9, digits = 2) 
 nodes$identification.group <- round((nodes$identification.group - 1)/9, digits = 2) # identification with group
 nodes$identification.collab <- round((nodes$identification.collab - 1)/9, digits = 2) # identification with collaboration
 
-## remove unwanted columns now that we have totalized scores
+## aggregate survey items some more.
 
+nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(extrinsic.regulation.material,extrinsic.regulation.social,introjected.regulation))), digits = 2)
+nodes$autonomous.motivation <- round(rowMeans(subset(nodes, select = c(identified.regulation,intrinsic.motivation))), digits = 2)
+nodes$self.efficacy <- nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(job.autonomy,job.competence,creative.self.efficacy))), digits = 2)
 
+## remove unwanted columns now that we have totalized scores.
 
-node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:49,51)) # drop unwanted columns using column numbers
+node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:49,51,55:63)) # drop unwanted columns using column numbers
 node.summary$vertex.id <- node.summary$id # duplicate id for future labelling purposes.
 
 ## add employer organisation using look-up table
@@ -94,7 +100,12 @@ node.summary <- addNewData("lookupTable.csv", node.summary, allowedVars) # add d
 
 # generate knowledge provider ties
 
-edge.all <- read_excel("surveydata.xlsx", sheet = 2) # read in relationships sheet from onasurvey downloaded workbook
+## read in relationships sheet from onasurvey downloaded workbook
+
+edge.all <- read_excel("surveydata.xlsx", sheet = 2) 
+
+## extract knowledge provider data.
+
 edge.knowledge <- filter(edge.all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
 
 edge.knowledge[11:13] <- lapply(edge.knowledge[11:13], as.numeric)
@@ -166,12 +177,20 @@ for (g in graph.list){
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
 }
 
-# write pre-processed data to files
+# Create and write out GEPHI files.
+
+for (g in graph.list){
+  eval(parse(text = paste0(g,'.gexf <- igraph.to.gexf(', g,')')))
+  eval(parse(text = paste0('f <- file("', g,'.gexf")')))
+  eval(parse(text = paste0('writeLines(', g,'.gexf$graph, con = f)')))
+  eval(parse(text = paste0('on.exit(close(f))')))
+    }
+
+# write pre-processed data to files.
 
 for (g in graph.list){
   eval(parse(text = paste0(g,'.vertex.attributes <- get.vertex.attribute(', g,')')))
   eval(parse(text = paste0('write.csv(', g,'.vertex.attributes, file = "', g,'.csv", row.names = FALSE)')))
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }
-
 

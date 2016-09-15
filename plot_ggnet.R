@@ -6,6 +6,7 @@ library(ggplot2)
 library(ggnet)
 library(randomcoloR)
 library(gridExtra)
+library(ggthemes)
 
 # set working directory
 
@@ -23,9 +24,9 @@ library(gridExtra)
 
 # Case study 3
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
+ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/GIHH") # work PC
 
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
@@ -62,22 +63,26 @@ p8 <- ggnet2(prior.relationship.net.sna, mode = x[,1:2], node.size = ns, label =
 p9 <- ggnet2(report.to.net.sna, mode = x[,1:2], node.size = ns, label = "vertex.id",label.size = ls, color = "employer", palette = col.scale, arrow.size = as, arrow.gap = ag, edge.size = es, edge.color = ec)
 
 # common plotting parameters
+# b = theme_economist() 
+# b = theme_economist_white()
+# b = theme_few()
 b = theme(panel.background = element_rect(color = "grey50"))
 z = guides(color = FALSE)
+
 
 # plot networks in a grid layout
 
 pdf(file = "networks.pdf", width= 18, height = 12, useDingbats=F) 
 
-gridExtra::grid.arrange(p1 + z + ggtitle("Knowledge Provider") + b,
-                        p2 + z + ggtitle("Explict Knowledge Provider") + b,
-                        p3 + z + ggtitle("Tacit Knowledge Provider") + b,
-                        p4 + z + ggtitle("Idea Generation") + b,
-                        p5 + z + ggtitle("Idea Realisation") + b,
-                        p6 + z + ggtitle("Affect-based Trust") + b,
-                        p7 + z + ggtitle("Cognition-based Trust") + b,
-                        p8 + z + ggtitle("Prior Relationship") + b,
-                        p9 + z + ggtitle("Reports To") + b,
+gridExtra::grid.arrange(p1 + z + ggtitle("Knowledge provider") + b,
+                        p2 + z + ggtitle("Explict knowledge provider") + b,
+                        p3 + z + ggtitle("Tacit knowledge provider") + b,
+                        p4 + z + ggtitle("Idea generation") + b,
+                        p5 + z + ggtitle("Idea realisation") + b,
+                        p6 + z + ggtitle("Affect-based trust") + b,
+                        p7 + z + ggtitle("Cognition-based trust") + b,
+                        p8 + z + ggtitle("Prior relationship") + b,
+                        p9 + z + ggtitle("Reports to") + b,
                         nrow = 3)
 
 

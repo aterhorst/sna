@@ -124,12 +124,12 @@ cont$case <- as.factor(cont$case)
 dat.m <- melt(cont,id.vars = 'case', measure.vars=c('age','work.experience','current.job.tenure'))
 
 p <- ggplot(dat.m) +
-  geom_violin(color="gray",aes(x=factor(variable), y = value)) +
-  geom_boxplot(aes(x=factor(variable), y = value, fill = variable), width = 0.1, outlier.colour = NA) +
-  geom_jitter(alpha=0.5, aes(x=factor(variable), y = value), color= "black",position = position_jitter(width = .4))+
+#  geom_violin(color="gray",aes(x=factor(variable), y = value)) +
+  geom_boxplot(aes(x=factor(variable), y = value, fill = variable), width = 0.3, outlier.colour = NA) +
+  geom_jitter(alpha=0.3, aes(x=factor(variable), y = value), color= "black",position = position_jitter(width = .2))+
   facet_wrap(~case, labeller = as_labeller(case_id)) +
   scale_y_continuous("Years", breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70)) +
-  scale_x_discrete(name = "", labels = c("Age", "Work\nExperience", "Job\nTenure")) +
+  scale_x_discrete(name = "", labels = c("Age", "Job\nExperience", "Job\nTenure")) +
   theme_economist() +
 #  theme_classic()
   theme(legend.position = "none")

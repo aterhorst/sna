@@ -22,9 +22,9 @@ graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowl
 
 # delete vertices with NA values
 
-# for(g in graph.list){
-#  eval(parse(text = paste0(g, ' <- delete.vertices(', g, ', V(', g,')$vertex.id > 26)')))
-#  }
+for(g in graph.list){
+  eval(parse(text = paste0(g, ' <- delete.vertices(', g,', V(',g,')$vertex.id > 26)')))
+  }
 
 # create and export adjacency matrix for each network
 
@@ -37,20 +37,19 @@ for (g in graph.list){
 
 # ns <- filter(node.summary, vertex.id <= 26)
 
-continuous.data <- subset(node.summary, select = c(age,work.experience,current.job.tenure,
+continuous.data <- na.omit(subset(node.summary, select = c(age,work.experience,current.job.tenure,
                                                    personality.openness, personality.conscientiousness,
                                                    personality.agreeableness, job.competence, job.autonomy,
-                                                   identification.org, identification.group, identification.collab,
-                                                   creative.self.efficacy, amotivation, extrinsic.regulation.social,
-                                                   extrinsic.regulation.material,introjected.regulation,
-                                                   identified.regulation, intrinsic.motivation)) # select columns with continuous data
+                                                   identification.org, identification.group, amotivation, 
+                                                   extrinsic.regulation.social, extrinsic.regulation.material,
+                                                   introjected.regulation, identified.regulation, intrinsic.motivation,
+                                                   controlled.motivation, autonomous.motivation))) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-categorical.data <- subset(node.summary, select = c(work.location, education.level, education.field,
-                                                    occupation.class, employer)) # select columns with categorical data
+categorical.data <- na.omit(subset(node.summary, select = c(work.location, education.level, education.field, employer))) # select columns with categorical data
 write.table(categorical.data, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-binary.data <- subset(node.summary, select = c(gender))
+binary.data <- na.omit(subset(node.summary, select = c(gender)))
 write.table(binary.data, "binary_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 # create dyadic covariate file

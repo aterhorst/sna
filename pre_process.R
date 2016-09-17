@@ -17,8 +17,8 @@ library(devtools) # so we can use source_url
 
 # Case study 1
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 # Case study 2
@@ -176,6 +176,20 @@ for (g in graph.list){
   eval(parse(text = paste0('V(', g, ')$local.transitivity <- transitivity(', g, ', type = "local")'))) # higher the constraint, the fewer the opportunities to broker
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
 }
+
+# # Remove NaN values.
+# 
+# for (g in graph.list){
+#   eval(parse(text = paste0('V(', g, ')$degree[is.nan(V(', g,')$degree)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$in.degree[is.nan(V(', g,')$in.degree)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$out.degree[is.nan(V(', g,')$out.degree)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$closeness.centrality[is.nan(V(', g,')$closeness.centrality)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$betweenness.centrality[is.nan(V(', g,')$betweenness.centrality)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$eigen.vector.centrality[is.nan(V(', g,')$eigen.vector.centrality)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$local.transitivity[is.nan(V(', g,')$local.transitivity)] <- 0')))
+#   eval(parse(text = paste0('V(', g, ')$constraint[is.nan(V(', g,')$constraint)] <- 0')))
+# }
+
 
 # Create and write out GEPHI files.
 

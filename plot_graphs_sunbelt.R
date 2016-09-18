@@ -42,16 +42,20 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home P
 
 # Fix layout.
 
-load("graph_layout_HF.rda") # saved layout file
+# load("graph_layout.rda") # saved layout file
+# 
 
 # lo <- layout.fruchterman.reingold(knowledge.provider.net)
 
 # lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
-#                  seed = matrix(runif(vcount(knowledge.provider.net) * 2),ncol = 2), 
-#                  options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
-#                  fixed = NULL, dim = 2)
+                  seed = matrix(runif(vcount(knowledge.provider.net) * 2),ncol = 2), 
+                  options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
+                  fixed = NULL, dim = 2)
+
 # tkplot(knowledge.provider.net, layout = lo) # adjust in tkplot
 # lo2 = tkplot.getcoords(1) # grab coordinates from tkplot
+
+# write(lo2, file = "graph_layout.rda")
  
 # Set graphing parameters.
 
@@ -66,7 +70,7 @@ windowsFonts(Arial=windowsFont("TT Arial"))
 
 ## Set sizes.
 
-scalar <- 5 # vertex symbol size
+scalar <- 3 # vertex symbol size
 arrow_size <- 0.075 # edge arrow size
 label_size <- 5 # vertex label size
 title_size <- 10 #subtitle size

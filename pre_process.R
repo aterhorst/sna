@@ -2,7 +2,7 @@
 #                                                   #
 #      R script to generate igraph networks         #
 #  from raw .xlsx file downloaded from onasurveys   #
-#               Version 2016-09-15                  #      
+#               Version 2016-09-18                  #      
 #                                                   #
 #####################################################
 
@@ -13,28 +13,30 @@ library(igraph)
 library(rgexf)
 library(devtools) # so we can use source_url
 
-# set working directory
+# Set working directory.
 
-# Case study 1
+## Case 1
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
-# Case study 2
+## Case 2
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
-# Case study 3
+## Case 3
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/GIHH") # work PC
 
 
-# import nodes
+# Import survey data.
+
+## Read in node data from onasurvey downloaded workbook.
 
 nodes <- read_excel("surveydata.xlsx", sheet = 1)
 fn <- "temp.csv"
@@ -42,9 +44,12 @@ write.csv(nodes, file = fn, row.names = FALSE)
 nodes <- read.csv(fn)
 if (file.exists(fn)) file.remove(fn) # clean up garbage
 
+## Read in relationships from onasurvey downloaded workbook.
+
+edge.all <- read_excel("surveydata.xlsx", sheet = 2) 
 
 
-# fix nodes
+# Clean up node data. Extract numeric values, rename attributes.
 
 nodes$Age <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Age)) # extract years only
 nodes$Experience <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Experience)) # extract years only
@@ -55,15 +60,15 @@ nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "w
                                "Experience" = "work.experience", "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
                                "Identity2" = "identification.group", "Identity3" = "identification.collab"))
 
-# totalize scale items
+# Totalise scale items.
 
-## reverse specific survey items
+## Reverse score specific survey items.
 
 nodes$Openness2 <- 10 - nodes$Openness2 # reverse openness scale item 2
 nodes$Conscientiousness1 <- 10 - nodes$Conscientiousness1 # reverse conscientious scale item 1
 nodes$Agreeableness2 <- 10 - nodes$Agreeableness2 # reverse agreeableness scale item 2
 
-## aggregate survey items. Rescale aggregated items between 0 and 1.
+## Aggregate survey items. Rescale aggregated items between 0 and 1.
 
 nodes$personality.openness <- round((rowMeans(subset(nodes, select = c(Openness1,Openness2)), na.rm = TRUE)-1)/9, digits = 2) # openness
 nodes$personality.conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
@@ -81,55 +86,52 @@ nodes$identification.org <- round((nodes$identification.org - 1)/9, digits = 2) 
 nodes$identification.group <- round((nodes$identification.group - 1)/9, digits = 2) # identification with group
 nodes$identification.collab <- round((nodes$identification.collab - 1)/9, digits = 2) # identification with collaboration
 
-## aggregate survey items some more.
+## Summarise aggregated survey items.
 
 nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(extrinsic.regulation.material,extrinsic.regulation.social,introjected.regulation))), digits = 2)
 nodes$autonomous.motivation <- round(rowMeans(subset(nodes, select = c(identified.regulation,intrinsic.motivation))), digits = 2)
 nodes$self.efficacy <- nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(job.autonomy,job.competence,creative.self.efficacy))), digits = 2)
 
-## remove unwanted columns now that we have totalized scores.
+## Remove unwanted columns now that we have aggregated/summarised scores.
 
 node.summary <- subset(nodes, select=-c(3:4,13:16,18:34,36:49,51,55:63)) # drop unwanted columns using column numbers
 node.summary$vertex.id <- node.summary$id # duplicate id for future labelling purposes.
 
-## add employer organisation using look-up table
+## Add employer organisation using look-up table.
 
 source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
 allowedVars <- c("employer")
 node.summary <- addNewData("lookupTable.csv", node.summary, allowedVars) # add descriptive fields
 
-# generate knowledge provider ties
+# Generate knowledge provider ties.
 
-## read in relationships sheet from onasurvey downloaded workbook
-
-edge.all <- read_excel("surveydata.xlsx", sheet = 2) 
-
-## extract knowledge provider data.
+## Extract knowledge provider data.
 
 edge.knowledge <- filter(edge.all, relationship_set_knowledge_sharing == 1) # extract knowledge provider ties
-
-edge.knowledge[11:13] <- lapply(edge.knowledge[11:13], as.numeric)
+edge.knowledge[11:13] <- lapply(edge.knowledge[11:13], as.numeric) # convert to numeric values
 edge.knowledge$Codified <- 10 - edge.knowledge$Codified # reverse score level of documented knowledge
 edge.knowledge$tacit <- round((rowMeans(subset(edge.knowledge, select = c(Codified,Complexity,Observability), na.rm = TRUE))-1)/9, digits = 2) # compute level of tacitness between 0 and 1
 edge.knowledge <- subset(edge.knowledge, select = c(from, to, tacit)) # purge unwanted columns - knowledge sharing edge list
 
+## Filter edge lists by level of tacitness.
+
 edge.tacit.knowledge <- filter(edge.knowledge, tacit > 0.5) # filter predominantly tacit knowledge sharing ties
 edge.explicit.knowledge <- filter(edge.knowledge, tacit < 0.5)
 
-# generate knowledge provider graph from ties, nodes
+# Generate knowledge provider graphs from ties, nodes.
 
 knowledge.provider.net <- graph.data.frame(edge.knowledge, node.summary, directed = TRUE)
 tacit.knowledge.net <- graph.data.frame(edge.tacit.knowledge, node.summary, directed = TRUE)
 explicit.knowledge.net <- graph.data.frame(edge.explicit.knowledge, node.summary, directed = TRUE)
 
-# reverse direction of ties 
+# Reverse direction of ties.
 
 source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
 knowledge.provider.net <- graph.reverse(knowledge.provider.net) # fix direction of knowledge provider ties
 tacit.knowledge.net <- graph.reverse(tacit.knowledge.net) # fix direction of knowledge provider ties
 explicit.knowledge.net <- graph.reverse(explicit.knowledge.net)
 
-# generate other edge lists
+# Generate other edge lists.
 
 edge.idea.generation <- filter(edge.all, relationship_set_idea_generation == 1) # extract idea generation with ties
 edge.idea.generation <- subset(edge.idea.generation, select = c(from, to)) # purge unwanted columns
@@ -144,7 +146,7 @@ edge.prior.relationship <- subset(edge.prior.relationship, select = c(from, to))
 edge.report.to <- filter(edge.all, relationship_set_managers == 1) # extract manager/supervisor ties
 edge.report.to <- subset(edge.report.to, select = c(from, to)) # purge unwanted columns
 
-# generate other graphs
+# Generate other graphs.
 
 idea.generation.net <- graph.data.frame(edge.idea.generation, node.summary, directed = TRUE) # ideation network
 idea.realisation.net <- graph.data.frame(edge.idea.realisation, node.summary, directed = TRUE) # idea realisation network 
@@ -153,7 +155,7 @@ cognition.based.trust.net <- graph.data.frame(edge.cognition.based.trust, node.s
 prior.relationship.net <- graph.data.frame(edge.prior.relationship, node.summary, directed = TRUE) # prior relationships network
 report.to.net <- graph.data.frame(edge.report.to, node.summary, directed = TRUE) # manager network
 
-# simplify graphs
+# Simplify graphs (remove multiple edges).
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
                 "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
@@ -164,7 +166,7 @@ for (g in graph.list){
   eval(parse(text = paste0(g, ' <- simplify(', g,', remove.multiple = FALSE, remove.loops = TRUE)')))
 }
 
-# compute standard network statistics for each network 
+# Compute standard network statistics for each network.
 
 for (g in graph.list){
   eval(parse(text = paste0('V(', g, ')$degree <- degree(', g, ', mode = "all")'))) # no. of ties
@@ -173,34 +175,27 @@ for (g in graph.list){
   eval(parse(text = paste0('V(', g, ')$closeness.centrality <- centralization.closeness(', g, ')$res'))) # central nodes = lower total distance from all other nodes
   eval(parse(text = paste0('V(', g, ')$betweenness.centrality <- centralization.betweenness(', g, ')$res'))) # number of times node acts as a bridge along the shortest path between two other nodes.
   eval(parse(text = paste0('V(', g, ')$eigen.vector.centrality <- centralization.evcent(', g, ')$vector'))) # measure of the influence of a node in a network
-  eval(parse(text = paste0('V(', g, ')$local.transitivity <- transitivity(', g, ', type = "local")'))) # higher the constraint, the fewer the opportunities to broker
   eval(parse(text = paste0('V(', g, ')$constraint <- constraint(', g, ')'))) # higher the constraint, the fewer the opportunities to broker
 }
 
-# # Remove NaN values.
-# 
-# for (g in graph.list){
-#   eval(parse(text = paste0('V(', g, ')$degree[is.nan(V(', g,')$degree)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$in.degree[is.nan(V(', g,')$in.degree)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$out.degree[is.nan(V(', g,')$out.degree)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$closeness.centrality[is.nan(V(', g,')$closeness.centrality)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$betweenness.centrality[is.nan(V(', g,')$betweenness.centrality)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$eigen.vector.centrality[is.nan(V(', g,')$eigen.vector.centrality)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$local.transitivity[is.nan(V(', g,')$local.transitivity)] <- 0')))
-#   eval(parse(text = paste0('V(', g, ')$constraint[is.nan(V(', g,')$constraint)] <- 0')))
-# }
+# Replace NaN values in constraint measures.
 
+for (g in graph.list){
+  eval(parse(text = paste0('V(', g, ')$constraint <- replace(V(', g, ')$constraint,is.nan(V(', g, ')$constraint),1)')))
+}
 
-# Create and write out GEPHI files.
+# Write pre-processed data to files.
+
+## Create and write out GEPHI files.
 
 for (g in graph.list){
   eval(parse(text = paste0(g,'.gexf <- igraph.to.gexf(', g,')')))
   eval(parse(text = paste0('f <- file("', g,'.gexf")')))
   eval(parse(text = paste0('writeLines(', g,'.gexf$graph, con = f)')))
   eval(parse(text = paste0('on.exit(close(f))')))
-    }
+}
 
-# write pre-processed data to files.
+## Write out .csv and .rda files.
 
 for (g in graph.list){
   eval(parse(text = paste0(g,'.vertex.attributes <- get.vertex.attribute(', g,')')))
@@ -208,3 +203,4 @@ for (g in graph.list){
   eval(parse(text = paste0('save(', g, ', file = "', g,'.rda")'))) # save as R data file
 }
 
+# End.

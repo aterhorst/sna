@@ -108,5 +108,5 @@ plot(tacit.knowledge.net, edge.arrow.size = arrow_size,
      layout = lo)
 title("Predominantly Tacit Knowledge", cex.main = title_size)
 
-dev.print(device = png, width = 6000, height = 2000, units = "px", "networks.png")
+dev.print(device = png, width = 6000, height = 2000, units = "px", "knowledge_networks.png")
 

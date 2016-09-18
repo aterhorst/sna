@@ -63,8 +63,8 @@ x = gplot.layout.kamadakawai(knowledge.provider.net.sna, NULL) # use densest net
 
 ns <- 6
 ls <- 2
-ag <- 0.02
-as <- 3
+ag <- 0.03
+as <- 4
 es <- 0.1
 ec <- "grey50"
 
@@ -76,13 +76,13 @@ ec <- "grey50"
 p1 <- ggnet2(knowledge.provider.net.sna, mode = x[,1:2], 
              node.size = 5*(1 / knowledge.provider.net.sna %v% "constraint"), 
              label = "vertex.id", label.size = ls, color = "employer", 
-             palette = col.scale, arrow.size = as, arrow.gap = ag, 
-             edge.size = 1.5*knowledge.provider.net.sna %e% "tacit", edge.color = ec)
+             palette = col.scale, arrow.size = as, arrow.gap = ag, arrow.type = 'open',
+             edge.size = knowledge.provider.net.sna %e% "tacit", edge.color = ec)
 
 p2 <- ggnet2(explicit.knowledge.net.sna, mode = x[,1:2], 
              node.size = 5*(1 / explicit.knowledge.net.sna %v% "constraint"), 
              label = "vertex.id", label.size = ls, color = "employer", 
-             palette = col.scale, arrow.size = as, arrow.gap = ag, 
+             palette = col.scale, arrow.size = as, arrow.gap = ag,arrow.type = 'open', 
              edge.size = es, edge.color = ec)
 
 p3 <- ggnet2(tacit.knowledge.net.sna, mode = x[,1:2], 

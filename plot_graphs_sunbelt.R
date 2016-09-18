@@ -45,7 +45,7 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home P
 # load("graph_layout.rda") # saved layout file
 # 
 
-# lo <- layout.fruchterman.reingold(knowledge.provider.net)
+lo <- layout_kamada_kawai(knowledge.provider.net)
 
 # lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
                   seed = matrix(runif(vcount(knowledge.provider.net) * 2),ncol = 2), 

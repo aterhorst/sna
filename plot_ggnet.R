@@ -8,7 +8,7 @@
 
 # Load required libraries.
 
-# library(GGally)
+library(GGally)
 library(network)
 library(sna)
 library(intergraph)
@@ -35,7 +35,7 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home P
 # Case 3
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
- setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/GIHH") # work PC
 
  # Load sna files created using pre-process.R script.
@@ -52,9 +52,10 @@ for (g in graph.list){
 
 # Create a custom color scale.
 
-library(randomcoloR)
-n <- 18 # number of employers (varies according to case study)
-col.scale <- distinctColorPalette(n)
+employer <- factor(V(knowledge.provider.net)$employer)
+n <- max(unlist(as.integer(employer))) # number of employers (varies according to case study)
+col.scale <- distinctColorPalette(n) # generate colour scale based on number of employers
+
 
 # Fix plot parameters.
 
@@ -62,7 +63,7 @@ x = gplot.layout.kamadakawai(knowledge.provider.net.sna, NULL) # use densest net
 
 ns <- 6
 ls <- 2
-ag <- 0
+ag <- 0.02
 as <- 3
 es <- 0.1
 ec <- "grey50"
@@ -73,21 +74,21 @@ ec <- "grey50"
 # Create plot objects.
 
 p1 <- ggnet2(knowledge.provider.net.sna, mode = x[,1:2], 
-             node.size = (1 / knowledge.provider.net.sna %v% "constraint")^2, 
+             node.size = 5*(1 / knowledge.provider.net.sna %v% "constraint"), 
              label = "vertex.id", label.size = ls, color = "employer", 
              palette = col.scale, arrow.size = as, arrow.gap = ag, 
-             edge.size = es, edge.color = ec)
+             edge.size = 1.5*knowledge.provider.net.sna %e% "tacit", edge.color = ec)
 
 p2 <- ggnet2(explicit.knowledge.net.sna, mode = x[,1:2], 
-             node.size = (1 / explicit.knowledge.net.sna %v% "constraint")^2, 
+             node.size = 5*(1 / explicit.knowledge.net.sna %v% "constraint"), 
              label = "vertex.id", label.size = ls, color = "employer", 
              palette = col.scale, arrow.size = as, arrow.gap = ag, 
              edge.size = es, edge.color = ec)
 
 p3 <- ggnet2(tacit.knowledge.net.sna, mode = x[,1:2], 
-             node.size = (1 / tacit.knowledge.net.sna %v% "constraint")^2, 
+             node.size = 5*(1 / tacit.knowledge.net.sna %v% "constraint"), 
              label = "vertex.id", label.size = ls, color = "employer", 
-             palette = col.scale, arrow.size = as, arrow.gap = ag, 
+             palette = col.scale, arrow.size = as, arrow.gap = ag, arrow.type = 'open',
              edge.size = es, edge.color = ec)
 
 # Set theme.
@@ -96,17 +97,16 @@ p3 <- ggnet2(tacit.knowledge.net.sna, mode = x[,1:2],
 # b = theme_economist_white()
 # b = theme_few()
 b = theme(panel.background = element_rect(color = "black"))
-z = guides(color = FALSE)
-
-
+z = guides(color = FALSE, size = FALSE)
 # plot networks in a grid layout
 
-pdf(file = "networks.pdf", width= 18, height = 6, useDingbats=F) 
+pdf(file = "networks_ggnet.pdf", width= 18, height = 6, useDingbats=F) 
 
-gridExtra::grid.arrange(p1 + z + ggtitle("All Knowledge") + b,
-                        p2 + z + ggtitle("Predominantly Explict Knowledge") + b,
-                        p3 + z + ggtitle("Predominantly Tacit Knowledge") + b,
+gridExtra::grid.arrange(p1 + b + z + ggtitle("All Knowledge"),
+                        p2 + b + z + ggtitle("Predominantly Explict Knowledge"), 
+                        p3 + b + z + ggtitle("Predominantly Tacit Knowledge"),
                         nrow = 1)
+
 
 
 dev.off()

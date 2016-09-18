@@ -55,8 +55,8 @@ employer <- factor(V(knowledge.provider.net)$employer) # extract employer organi
 
 ## Create a custom color scale.
 
-n <- 7 # number of employers (varies according to case study)
-col.scale <- distinctColorPalette(n)
+n <- max(unlist(as.integer(employer))) # number of employers (varies according to case study)
+col.scale <- distinctColorPalette(n) # generate colour scale based on number of employers
 
 windowsFonts(Arial=windowsFont("TT Arial"))
 
@@ -65,17 +65,18 @@ windowsFonts(Arial=windowsFont("TT Arial"))
 scalar <- 5 # vertex symbol size
 arrow_size <- 0.075 # edge arrow size
 label_size <- 5 # vertex label size
-title_size <- 12 #subtitle size
-
+title_size <- 10 #subtitle size
+box_line <- 4
+shift_title <- 5
 
 ## Specify layout.
 
-par(mfcol = c(1,3), mar = c(1,1,8,1)) # create 1x3 plot layout
+par(mfcol = c(1,3), mar = c(1,1,12,1), omar = c(2,2,0,2)) # create 1x3 plot layout
 
 # Plot graphs.
 
 ## 1
-plot(knowledge.provider.net, edge.arrow.size = arrow_size, 
+grayplot(knowledge.provider.net, edge.arrow.size = arrow_size, 
      vertex.color = col.scale[employer], 
      vertex.size = (1/V(knowledge.provider.net)$constraint)*scalar,
      vertex.label.family="Arial",
@@ -84,7 +85,8 @@ plot(knowledge.provider.net, edge.arrow.size = arrow_size,
      edge.color = "gray25",
      edge.width = 10*E(knowledge.provider.net)$tacit,
      layout = lo)
-title("All Knowledge", cex.main = title_size)
+title("All Knowledge", cex.main = title_size, line = shift_title)
+box(lty = 'solid', lwd = box_line,  col = 'black')
 
 ## 2     
 plot(explicit.knowledge.net, edge.arrow.size = arrow_size, 
@@ -95,7 +97,8 @@ plot(explicit.knowledge.net, edge.arrow.size = arrow_size,
      vertex.label = V(explicit.knowledge.net)$vertex.id,
      edge.color = "gray25",
      layout = lo)
-title("Predominantly Explicit Knowledge", cex.main = title_size)
+title("Predominantly Explicit Knowledge", cex.main = title_size, line = shift_title)
+box(lty = 'solid', lwd = box_line,  col = 'black')
 
 ## 3
 plot(tacit.knowledge.net, edge.arrow.size = arrow_size, 
@@ -106,7 +109,8 @@ plot(tacit.knowledge.net, edge.arrow.size = arrow_size,
      vertex.label = V(tacit.knowledge.net)$vertex.id,
      edge.color = "gray25",
      layout = lo)
-title("Predominantly Tacit Knowledge", cex.main = title_size)
+title("Predominantly Tacit Knowledge", cex.main = title_size, line = shift_title)
+box(lty = 'solid', lwd = box_line,  col = 'black')
 
 dev.print(device = png, width = 6000, height = 2000, units = "px", "knowledge_networks.png")
 

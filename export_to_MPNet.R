@@ -36,18 +36,18 @@ for (g in graph.list){
 
 # Generate node attribute files.
 
-continuous.data <- subset(node.summary, select = c(age,work.experience,current.job.tenure,
+continuous.data <- na.omit(subset(node.summary, select = c(age,work.experience,current.job.tenure,
                                                    personality.openness, personality.conscientiousness,
                                                    personality.agreeableness, self.efficacy,
                                                    identification.org, identification.group,
-                                                   controlled.motivation, autonomous.motivation)) # select columns with continuous data
+                                                   controlled.motivation, autonomous.motivation))) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-categorical.data <- subset(node.summary, select = c(work.location, education.level, education.field, 
-                                                            occupation.class, employer)) # select columns with categorical data
+categorical.data <- na.omit(subset(node.summary, select = c(work.location, education.level, education.field, 
+                                                            occupation.class, employer))) # select columns with categorical data
 write.table(categorical.data, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-binary.data <- subset(node.summary, select = c(gender))
+binary.data <- na.omit(subset(node.summary, select = c(gender)))
 write.table(binary.data, "binary_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 # create dyadic covariate file.

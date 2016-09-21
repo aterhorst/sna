@@ -45,7 +45,7 @@ library(extrafont)
 load("graph_layout.rda") # saved layout file
 # 
 
-# lo2 <- layout_with_fr(knowledge.provider.net)
+lo2 <- layout_with_kk(knowledge.provider.net)
 
 # lo <- layout.drl(knowledge.provider.net, use.seed = FALSE, 
 #                   seed = matrix(runif(vcount(knowledge.provider.net) * 2),ncol = 2), 
@@ -70,7 +70,7 @@ windowsFonts(Arial=windowsFont("TT Arial"))
 
 ## Set sizes.
 
-scalar <- 3 # vertex symbol size
+scalar <- 2 # vertex symbol size
 arrow_size <- 0.075 # edge arrow size
 label_size <- 5 # vertex label size
 title_size <- 10 #subtitle size

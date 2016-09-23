@@ -38,7 +38,7 @@ for (g in graph.list){
 
 continuous.data <- na.omit(subset(node.summary, select = c(age, work.experience,current.job.tenure, education.level,
                                                    personality.openness, personality.conscientiousness,
-                                                   personality.agreeableness, self.efficacy,
+                                                   personality.agreeableness, self.efficacy, identification.collab,
                                                    identification.org, identification.group,
                                                    controlled.motivation, autonomous.motivation))) # select columns with continuous data
 write.table(continuous.data, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)

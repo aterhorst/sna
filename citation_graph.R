@@ -41,11 +41,8 @@ ggplot(melted, aes(Year, value, fill = variable)) +
   geom_bar(stat = "identity", data = filter(melted, variable == "AC_AND_OI")) +
   scale_x_continuous(breaks = yr) +
   theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  scale_fill_discrete(breaks=c("AC","OI","AC_AND_OI"), 
-                      labels = str_wrap(c("Absorptive Capacity", "Open Innovation", "Absorptive Capacity & Open Innovation"), width = 25)) +
   labs(fill = "") +
   ylab("Research Articles") +
-  theme_economist_white()
   
 
   

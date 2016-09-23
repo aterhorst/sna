@@ -17,19 +17,19 @@ library(devtools) # so we can use source_url
 
 ## Case 1
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
+#setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 ## Case 2
 
 # setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
 
 ## Case 3
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
+setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
 # setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/GIHH") # work PC
 
@@ -55,7 +55,7 @@ nodes$Age <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Age)) # extract years only
 nodes$Experience <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Experience)) # extract years only
 nodes$Tenure <- as.numeric(gsub("([0-9]*).*","\\1",nodes$Tenure)) # extract years only
 nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "work.location", 
-                               "Education" = "education.level", "BroadEducationField" = "education.field", 
+                               "Education" = "education.level", "BroadEducationField" = "broad.education.field", 
                                "Occupation1" = "occupation.class", "Occupation" = "occupation.class", 
                                "Experience" = "work.experience", "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
                                "Identity2" = "identification.group", "Identity3" = "identification.collab"))

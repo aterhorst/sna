@@ -14,8 +14,8 @@ library(devtools) # so we can use source_url
 
 # Set working directory.
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies") # Home PC
+# setwd("~/ownCloud/Innovation Network Analysis/Case studies") # MacBook
+ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies") # work PC
 
 # Import data.
@@ -23,10 +23,12 @@ setwd("~/ownCloud/Innovation Network Analysis/Case studies") # MacBook
 links <- read_excel("Data_Tree.xlsx", sheet = 1)
 items <- read_excel("Data_Tree.xlsx", sheet = 2)
 
+
+
 # Create graph.
 
 
-data.tree <- graph.data.frame(links, items, directed = F)
+data.tree <- graph.data.frame(links, items, directed = FALSE)
 
 # data.tree <- make_ego_graph(data.tree, order = 4, nodes = V(data.tree)[74], mode = "in", mindist = 0)
   
@@ -48,10 +50,11 @@ l[,2] <- r * cos(phi)
 
 # Plot tree.
 
-plot(data.tree, layout = l, vertex.shape = "none", vertex.label.cex = 0.75,
+plot(data.tree, layout = l, vertex.shape = "none", vertex.label.cex = 2,
      vertex.label.family="Arial")
 
 
+dev.print(device = png, width = 3000, height = 3000, units = "px", "data_tree.png")
 
 
 

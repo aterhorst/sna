@@ -2,7 +2,7 @@
 #                                                   #
 #      R script to generate igraph networks         #
 #  from raw .xlsx file downloaded from onasurveys   #
-#               Version 2016-09-18                  #      
+#               Version 2016-09-23                  #      
 #                                                   #
 #####################################################
 
@@ -18,7 +18,7 @@ library(devtools) # so we can use source_url
 ## Case 1
 
 #setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
 
 ## Case 2
@@ -60,6 +60,8 @@ nodes <- plyr::rename(nodes, c("Gender"="gender", "Age" = "age", "Location" = "w
                                "Experience" = "work.experience", "Tenure" = "current.job.tenure", "Identity1" = "identification.org",
                                "Identity2" = "identification.group", "Identity3" = "identification.collab"))
 
+nodes$education.level <- as.numeric(nodes$education.level)
+
 # Totalise scale items.
 
 ## Reverse score specific survey items.
@@ -74,7 +76,7 @@ nodes$personality.openness <- round((rowMeans(subset(nodes, select = c(Openness1
 nodes$personality.conscientiousness <- round((rowMeans(subset(nodes, select = c(Conscientiousness1,Conscietiousness2)), na.rm = TRUE)-1)/9, digits = 2) # consceintiousness
 nodes$personality.agreeableness <- round((rowMeans(subset(nodes, select = c(Agreeableness1,Agreeableness2)), na.rm = TRUE)-1)/9, digits = 2) # agreeableness
 nodes$job.competence <- round((rowMeans(subset(nodes, select = c(Competence1,Competence2,Competence3)), na.rm = TRUE)-1)/9, digits = 2) # job competence
-nodes$job.autonomy <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
+nodes$self.determination <- round((rowMeans(subset(nodes, select = c(SelfDetermination1,SelfDetermination2,SelfDetermination3)), na.rm = TRUE)-1)/9, digits = 2) # self determination
 nodes$creative.self.efficacy <- round((rowMeans(subset(nodes, select = c(Creativity1,Creativity2,Creativity3,Creativity4)), na.rm = TRUE)-1)/9, digits = 2) # creativie self-efficacy
 nodes$amotivation <- round((rowMeans(subset(nodes, select = c(Amotivation1,Amotivation2,Amotivation3)), na.rm = TRUE)-1)/9, digits = 2) # amotivation
 nodes$extrinsic.regulation.social <- round((rowMeans(subset(nodes, select = c(ExtrinsicRegulationSocial1,ExtrinsicRegulationSocial2,ExtrinsicRegulationSocial3)), na.rm = TRUE)-1)/9, digits = 2) # extrinsic regulation - social
@@ -90,7 +92,7 @@ nodes$identification.collab <- round((nodes$identification.collab - 1)/9, digits
 
 nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(extrinsic.regulation.material,extrinsic.regulation.social,introjected.regulation))), digits = 2)
 nodes$autonomous.motivation <- round(rowMeans(subset(nodes, select = c(identified.regulation,intrinsic.motivation))), digits = 2)
-nodes$self.efficacy <- nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(job.autonomy,job.competence,creative.self.efficacy))), digits = 2)
+nodes$self.efficacy <- nodes$controlled.motivation <- round(rowMeans(subset(nodes, select = c(self.determination,job.competence,creative.self.efficacy))), digits = 2)
 
 ## Remove unwanted columns now that we have aggregated/summarised scores.
 

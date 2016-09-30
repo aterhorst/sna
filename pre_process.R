@@ -17,21 +17,21 @@ library(devtools) # so we can use source_url
 
 ## Case 1
 
-#setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/HF") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/HF") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/HF") # work PC
 
 ## Case 2
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/AMR") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/AMR") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/AMR") # work PC
 
 ## Case 3
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies/GIHH") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/GIHH") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/GIHH") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/GIHH") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/GIHH") # work PC
 
 
 # Import survey data.

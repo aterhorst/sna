@@ -15,7 +15,7 @@ library(Matrix)
 
 # Pre-process data if necessary. Be aware of working directory. 
 
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # create graphs.
+# source_url("https://raw.githubusercontent.com/aterhorst/sna/master/pre_process.R", sha1 = NULL) # create graphs.
 
 # Delete vertices with NA values (remove isolates). Condition on two attributes: age, work location.
 
@@ -60,3 +60,5 @@ for (g in graph.list){
   eval(parse(text = paste0('cat("', g,'\n", file = fn, append = TRUE)')))
   eval(parse(text = paste0('write.table(df.', g,', fn, append = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)')))
 }
+
+# End.

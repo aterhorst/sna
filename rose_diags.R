@@ -1,21 +1,36 @@
+#####################################################
+#                                                   #
+#                R script to generate               #
+#         rose diagrams showing demographics        #
+#               Version 2016-10-01                  #
+#                                                   #
+#####################################################
 
+# Load requiiste libraries.
 
 library(ggplot2)
 library(plyr)
 library(reshape2)
 library(ggthemes)
 
-# load categorical data generated using export_to_MPNet.R
+# Set working directory.
 
-hf_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/HF/categorical_data.txt", sep = "", header = T))
-amr_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/AMR/categorical_data.txt", sep = "", header = T))
-gihh_cat <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/GIHH/categorical_data.txt", sep = "", header = T))
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data") # work PC
+
+
+# Load categorical data generated using export_to_MPNet.R.
+
+hf_cat <- na.omit(read.table("HF/MPNet Data/categorical_data.txt", sep = "", header = T))
+amr_cat <- na.omit(read.table("AMR/MPNet Data/categorical_data.txt", sep = "", header = T))
+gihh_cat <- na.omit(read.table("GIHH/MPNet Data/categorical_data.txt", sep = "", header = T))
 
 # load continuous data generated using export_to_MPNet.R
 
-hf_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", sep = "", header = T))
-amr_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", sep = "", header = T))
-gihh_cont <- na.omit(read.table("~/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", sep = "", header = T))
+hf_cont <- na.omit(read.table("HF/MPNet Data/continuous_data.txt", sep = "", header = T))
+amr_cont <- na.omit(read.table("AMR/MPNet Data/continuous_data.txt", sep = "", header = T))
+gihh_cont <- na.omit(read.table("GIHH/MPNet Data/continuous_data.txt", sep = "", header = T))
 
 # merge continuous data
 
@@ -43,26 +58,26 @@ x <- ddply(cont,"case", summarise,
 
 # compute frequency - education
 
-hf <- count(hf_cat,"education.level")
+hf <- count(hf_cont,"education.level")
 hf$case <- 1
 
-amr <- count(amr_cat,"education.level")
+amr <- count(amr_cont,"education.level")
 amr$case <- 2
 
-gihh <- count(gihh_cat,"education.level")
+gihh <- count(gihh_cont,"education.level")
 gihh$case <- 3
 
 ed_rose <- rbind(hf,amr,gihh)
 
 # compute frequency - field
 
-hf_f <- count(hf_cat,"education.field")
+hf_f <- count(hf_cat,"broad.education.field")
 hf_f$case <- 1
 
-amr_f <- count(amr_cat,"education.field")
+amr_f <- count(amr_cat,"broad.education.field")
 amr_f$case <- 2
 
-gihh_f <- count(gihh_cat,"education.field")
+gihh_f <- count(gihh_cat,"broad.education.field")
 gihh_f$case <- 3
 
 field_rose <- rbind(hf_f,amr_f,gihh_f)
@@ -75,7 +90,7 @@ ed_level <- c("Secondary Education","Certificate Level","Diploma/Advanced Diplom
               "Bachelors Degree","Graduate Certificate/Diploma", 
               "Masters Degree","Doctoral Degree")
 
-ed_field <- c("Natural & Physical Sciences", "information Technology", "Engineering & Related Technologies",
+ed_field <- c("Natural & Physical Sciences", "Information Technology", "Engineering & Related Technologies",
               "Architecture & Building", "Agricultural, Environmental & Related Studies",
               "Health","Education", "Management & Commerce", "Society & Culture", "Creative Arts",
               "Food, Hospitality & Personal Services", "Mixed Field Programmes")
@@ -84,38 +99,50 @@ ed_field <- c("Natural & Physical Sciences", "information Technology", "Engineer
 
 # Plot 1
 
+pdf(file = "ed_level_rose.pdf")
+
 ggplot(ed_rose, aes(factor(education.level), freq, fill = factor(education.level))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
-  geom_text(aes(y = freq + 0.75, label = freq)) +
+  geom_text(aes(label=freq), nudge_y = 0.7, size = 3) +
   coord_polar() +
   scale_y_continuous(trans = "sqrt", breaks = c(1,4,9,16,25,36)) +  
-#  scale_y_continuous(trans = "log2", breaks = c(1,2,4,8,16,32)) +
-  # theme_bw() +
-  theme_economist() +
+  theme_fivethirtyeight()+
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        legend.text=element_text(size=8),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10)) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
-  scale_fill_discrete(name="LEVEL OF EDUCATION",
+  guides(fill=guide_legend(ncol=2)) +
+  scale_fill_discrete(name="EDUCATION LEVEL",
                       breaks=c(2:8),
                       labels= ed_level)
+dev.off()
 
 # Plot 2
 
-ggplot(field_rose, aes(factor(education.field), freq, fill = factor(education.field))) +
+pdf(file = "ed_field_rose.pdf")
+
+ggplot(field_rose, aes(factor(broad.education.field), freq, fill = factor(broad.education.field))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
-  geom_text(aes(y = freq + 0.75,label = freq)) +
+  geom_text(aes(label=freq), nudge_y = 1, size = 3) +
   coord_polar() +
   scale_y_continuous(breaks = c(4,8,12,16)) +
-  theme_economist() +
+  theme_fivethirtyeight() +
   # theme_bw() +
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
-        axis.title.y = element_blank()) +
+        axis.title.y = element_blank(),
+        legend.text = element_text(size = 8),
+        legend.title = element_text(size = 10)) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
-  scale_fill_discrete(name="FIELD OF EDUCATION",
+  guides(fill=guide_legend(ncol=2)) +
+  scale_fill_discrete(name="EDUCATION FIELD",
                       breaks=c(1:12),
                       labels= ed_field)
+
+dev.off()
 
 # boxplot
 

@@ -18,8 +18,8 @@ library(stringr)
 
 # Set working directory.
 
-setwd("~/ownCloud/Innovation Network Analysis/Literature Review") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Literature Review") # Home PC
+#setwd("~/ownCloud/Innovation Network Analysis/Literature Review") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Literature Review") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Literature Review") # work PC
 
 # Load data.

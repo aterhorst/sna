@@ -14,9 +14,9 @@ library(devtools) # so we can use source_url
 
 # Set working directory.
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies") # MacBook
- setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
+ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data") # work PC
 
 # Import data.
 
@@ -50,7 +50,7 @@ l[,2] <- r * cos(phi)
 
 # Plot tree.
 
-plot(data.tree, layout = l, vertex.shape = "none", vertex.label.cex = 2,
+plot(data.tree, layout = l, vertex.shape = "none", vertex.label.cex = 0.5,
      vertex.label.family="Arial")
 
 

@@ -6,7 +6,7 @@
 #                                                   #
 #####################################################
 
-
+# Load requisite libraries.
 
 library(ggmap)
 library(readxl)
@@ -18,26 +18,33 @@ library(reshape2)
 library(devtools)
 library(heatmaply)
 library(gplots)
+library(igraph)
+library(ggthemes)
+library(MASS)
+library(Matrix)
 
 
-# set working directory
+# Set working directory.
 
-setwd("~/ownCloud/Innovation Network Analysis/Case studies") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data") # work PC
 
-# import excel file
+# Import excel file.
 
 node.summary.all <- read_excel("node_summary_all.xlsx", sheet = 1)
 node.summary.all$location <- with(node.summary.all, paste0(country," postcode ", post.code))
 
 name.place <- node.summary.all[,c(1,3,30)]
-name.place <- subset(name.place, name.place$case_no == 2)
+name.place <- subset(name.place, name.place$case_no == 2) # subset specific cases
+
+# Get geographic coordinates.
+
 name.place$coordinate <- geocode(name.place$location, sensor = FALSE, output = "latlon", source = "google")
 
 dat <- as.data.frame(as.list(name.place[,c(2,4)]))
 
-# following code courtesy of Bangyou Zheng:
+# Following code courtesy of Bangyou Zheng:
 
 sphericalDistance <- function (lat1, lon1, lat2, lon2)
 {
@@ -70,39 +77,37 @@ edge.dat <- dat %>%
   # Calculate the distance
   mutate(distance = sphericalDistance(lat1, lon1, lat2, lon2))
 
-# create distance matrix
+# Create distance matrix.
 
 edge.dat <- subset(edge.dat, select = c(name1, name2, distance)) 
 
-edge.dat$local <- ifelse(edge.dat$distance < 50, 1, 0) # distance category
-edge.dat$region <- ifelse(edge.dat$distance >= 50 & edge.dat$distance < 250, 1, 0) # distance category
-edge.dat$national <- ifelse(edge.dat$distance >= 250 & edge.dat$distance < 2500, 1, 0) # distance category
-edge.dat$international <- ifelse(edge.dat$distance >= 2500, 1, 0) # distance category
+# Set max threshold.
+
+edge.dat$clipped.dist <- ifelse(edge.dat$distance > 4000, 4000, edge.dat$distance) # distance category
+
+edge.dat$clipped.dist <- rescale(edge.dat$clipped.dist, to = c(0,1), from = range(edge.dat$clipped.dist))
+
+
+edge.dat$scale.dist <- ifelse(edge.dat$distance > 4000, 4000, edge.dat$distance) # distance category
+
+edge.dat$scale.dist <- rescale(edge.dat$scale.dist, to = c(0,1), from = range(edge.dat$scale.dist))
+
+
+# Create network object using iGraph.
 
 edge.net <- graph.data.frame(edge.dat, directed = T)
 
-# create matrices
+# Generate adjacency matrix using iGraph.
 
-edge.matrix <- get.adjacency(edge.net, sparse = F, attr = "distance", type = "upper", names = F) # absolute geodistance
+edge.matrix <- get.adjacency(edge.net, sparse = F, attr = "scale.dist", type = "upper", names = F) # absolute geodistance
 
-edge.matrix.local <- get.adjacency(edge.net, sparse = F, attr = "local", type = "upper", names = F)
-edge.matrix.region <- get.adjacency(edge.net, sparse = F, attr = "region", type = "upper", names = F)
-edge.matrix.national <- get.adjacency(edge.net, sparse = F, attr = "national", type = "upper", names = F)
-edge.matrix.international <- get.adjacency(edge.net, sparse = F, attr = "international", type = "upper", names = F)
-
-
-# write out proximity matrix
+# Write out proximity matrix.
 
 write.matrix(edge.matrix, file = "geoproximity.txt", sep = "\t")
-write.matrix(edge.matrix.local, file = "close.proximity.txt", sep = "\t")
-write.matrix(edge.matrix.region, file = "nearby.proximity.txt", sep = "\t")
-write.matrix(edge.matrix.national, file = "far.proximity.txt", sep = "\t")
-write.matrix(edge.matrix.international, file = "very.far.proximity.txt", sep = "\t")
 
-# create heatmap
+# Create heatmap plot.
 
-# use gplots
-
+# With gplots ...(ugly)
 
 heatmap.2(
   edge.matrix,
@@ -114,19 +119,21 @@ heatmap.2(
   scale = 'none',
   density.info = "none")
 
-# use ggplot2
+# With ggplot2 ...(beautiful)
 
 melted <- melt(edge.matrix)
-n <- 25
+n <- nrow(dat)
 
 ggplot(data = melted, aes(x=Var1, y=Var2, fill=value)) +
   geom_tile() +
   scale_x_continuous(breaks = c(1:n)) +
   scale_y_continuous(breaks = c(1:n)) +
-  scale_fill_viridis(name="Spherical\nDistance (km)", begin = 0.1, end = 0.9) +
-  theme(
-    axis.title.x = element_blank(),
+  theme_fivethirtyeight() +
+  scale_fill_viridis(name="SPHERICAL\nDISTANCE (km)", begin = 0.1, end = 0.9) +
+  theme(axis.title.x = element_blank(),
     axis.title.y = element_blank(),
+    legend.text = element_text(size = 8, angle = 45),
+    legend.text.align = 1,
     panel.grid.major = element_blank(),
     panel.border = element_blank(),
     panel.background = element_blank(),

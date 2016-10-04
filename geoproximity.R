@@ -10,18 +10,16 @@
 
 library(ggmap)
 library(readxl)
-library(sets)
 library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(reshape2)
-library(devtools)
-library(heatmaply)
-library(gplots)
 library(igraph)
 library(ggthemes)
 library(MASS)
 library(Matrix)
+library(scales)
+
 
 
 # Set working directory.
@@ -81,17 +79,15 @@ edge.dat <- dat %>%
 
 edge.dat <- subset(edge.dat, select = c(name1, name2, distance)) 
 
-# Set max threshold.
+# Option 1 - set threshold.
 
-edge.dat$clipped.dist <- ifelse(edge.dat$distance > 4000, 4000, edge.dat$distance) # distance category
-
-edge.dat$clipped.dist <- rescale(edge.dat$clipped.dist, to = c(0,1), from = range(edge.dat$clipped.dist))
-
-
-edge.dat$scale.dist <- ifelse(edge.dat$distance > 4000, 4000, edge.dat$distance) # distance category
+edge.dat$scale.dist <- ifelse(edge.dat$distance >= 2000, 2000, edge.dat$distance) # distance category
 
 edge.dat$scale.dist <- rescale(edge.dat$scale.dist, to = c(0,1), from = range(edge.dat$scale.dist))
 
+# Option 2 - use log distance.
+
+edge.dat$log.dist <- log1p(edge.dat$distance) # convert to metres, add constant to get +ve log values.
 
 # Create network object using iGraph.
 
@@ -99,7 +95,7 @@ edge.net <- graph.data.frame(edge.dat, directed = T)
 
 # Generate adjacency matrix using iGraph.
 
-edge.matrix <- get.adjacency(edge.net, sparse = F, attr = "scale.dist", type = "upper", names = F) # absolute geodistance
+edge.matrix <- get.adjacency(edge.net, sparse = F, attr = "log.dist", type = "upper", names = F) # absolute geodistance
 
 # Write out proximity matrix.
 
@@ -129,7 +125,7 @@ ggplot(data = melted, aes(x=Var1, y=Var2, fill=value)) +
   scale_x_continuous(breaks = c(1:n)) +
   scale_y_continuous(breaks = c(1:n)) +
   theme_fivethirtyeight() +
-  scale_fill_viridis(name="SPHERICAL\nDISTANCE (km)", begin = 0.1, end = 0.9) +
+  scale_fill_continuous(name="LOG SPHERICAL\nDISTANCE (m)") +
   theme(axis.title.x = element_blank(),
     axis.title.y = element_blank(),
     legend.text = element_text(size = 8, angle = 45),

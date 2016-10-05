@@ -1,8 +1,8 @@
 #####################################################
 #                                                   #
 #            R script to compute geographic         #
-#             distance between people in a          #
-#                       network                     #
+#         distance between people in a network      #
+#                   Version 20161006                #
 #                                                   #
 #####################################################
 
@@ -33,14 +33,14 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home
 node.summary.all <- read_excel("node_summary_all.xlsx", sheet = 1)
 node.summary.all$location <- with(node.summary.all, paste0(country," postcode ", post.code))
 
-name.place <- node.summary.all[,c(1,3,30)]
-name.place <- subset(name.place, name.place$case_no == 2) # subset specific cases
+name.place <- node.summary.all[,c(1,2,3,30)]
+name.place <- subset(name.place, name.place$case_no == 3) # subset specific cases
 
 # Get geographic coordinates.
 
 name.place$coordinate <- geocode(name.place$location, sensor = FALSE, output = "latlon", source = "google")
 
-dat <- as.data.frame(as.list(name.place[,c(2,4)]))
+dat <- as.data.frame(as.list(name.place[,c(2,5)]))
 
 # Following code courtesy of Bangyou Zheng:
 
@@ -60,30 +60,30 @@ sphericalDistance <- function (lat1, lon1, lat2, lon2)
 }
 
 edge.dat <- dat %>%
-  # Create two new columns with the same names
-  mutate(name1 = name, name2 = name) %>%
+  # Create two new columns with the same ids
+  mutate(id1 = id, id2 = id) %>%
   # expand into all combinations of names
-  expand(name1, name2) %>%
+  expand(id1, id2) %>%
   # Remove name1 equals to name2 2
-  filter(name1 != name2) %>%
+  filter(id1 != id2) %>%
   # Merge the original data.frame for lon and lat in column name1
-  left_join(dat, by = c('name1' = 'name')) %>%
+  left_join(dat, by = c('id1' = 'id')) %>%
   rename(lon1 = coordinate.lon, lat1 = coordinate.lat) %>%
   # Merge the original data.frame for lon and lat in column name2
-  left_join(dat, by = c('name2' = 'name')) %>%
+  left_join(dat, by = c('id2' = 'id')) %>%
   rename(lon2 = coordinate.lon, lat2 = coordinate.lat) %>%
   # Calculate the distance
   mutate(distance = sphericalDistance(lat1, lon1, lat2, lon2))
 
 # Create distance matrix.
 
-edge.dat <- subset(edge.dat, select = c(name1, name2, distance)) 
+edge.dat <- subset(edge.dat, select = c(id1, id2, distance)) 
 
 # Option 1 - set threshold.
 
-edge.dat$scale.dist <- ifelse(edge.dat$distance >= 2000, 2000, edge.dat$distance) # distance category
-
-edge.dat$scale.dist <- rescale(edge.dat$scale.dist, to = c(0,1), from = range(edge.dat$scale.dist))
+# edge.dat$scale.dist <- ifelse(edge.dat$distance >= 2000, 2000, edge.dat$distance) # distance category
+# 
+# edge.dat$scale.dist <- rescale(edge.dat$scale.dist, to = c(0,1), from = range(edge.dat$scale.dist))
 
 # Option 2 - use log distance.
 

@@ -15,9 +15,9 @@ library(devtools)
 # Pre-process network data and export files for MPNet. 
 # Load exported files for correlation analysis.
 
-amr <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR/continuous_data.txt", header = T, sep = ""))
-hf <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF/continuous_data.txt", header = T, sep = ""))
-gihh <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/GIHH/continuous_data.txt", header = T, sep = ""))
+amr <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2/MPNet data/continuous_data.txt", header = T, sep = ""))
+hf <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 1/MPNet data/continuous_data.txt", header = T, sep = ""))
+gihh <- na.omit(read.table("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3/MPNet data/continuous_data.txt", header = T, sep = ""))
 
 # Merge into one dataset.
 

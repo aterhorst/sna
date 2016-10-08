@@ -22,18 +22,23 @@ detach_package("igraph", TRUE)
 
 # set working directory
 
-# Case study 1
+## Case 1
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/HF") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/HF") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/HF") # work PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 1") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # work PC
 
-# Case study 2
+## Case 2
 
-# setwd("~/ownCloud/Innovation Network Analysis/Case studies/AMR") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Case studies/AMR") # Home PC
-setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Case studies/AMR") # work PC
+#setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # work PC
 
+## Case 3
+
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # MacBook
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # Home PC
+# setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # work PC
 
 
 # load and convert igraph objects saved as .rda files

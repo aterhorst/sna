@@ -12,6 +12,7 @@ library(ggplot2)
 library(plyr)
 library(reshape2)
 library(ggthemes)
+library(showtext)
 
 # Set working directory.
 
@@ -99,7 +100,8 @@ ed_field <- c("Natural & Physical Sciences", "Information Technology", "Engineer
 
 # Plot 1
 
-pdf(file = "ed_level_rose.pdf")
+
+svg(file = "ed_level_rose.svg", width = 5, height = 4)
 
 ggplot(ed_rose, aes(factor(education.level), freq, fill = factor(education.level))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 

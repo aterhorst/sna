@@ -63,7 +63,7 @@ for (g in graph.list.2){
 
 # Perform G-F analysis.
 
-graph.list.3 <- c("knowledge.provider.net.sna", "explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.generation.net.sna")
+graph.list.3 <- c("explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.generation.net.sna")
 
 for (g in graph.list.3){
   eval(parse(text = paste0('gf.', g,' <- brokerage(', g,', knowledge.provider.net.sna%v%"employer")')))
@@ -76,44 +76,41 @@ for (g in graph.list.3){
 source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
 allowedVars <- c("employer")
 
-kp <- as.data.frame(gf.knowledge.provider.net.sna$raw.nli[,1:5])
-kp$name <- rownames(kp)
-kp$net <- "all knowledge"
-rownames(kp) <- NULL
-kp <- addNewData("lookupTable.csv", kp, allowedVars) # add descriptive fields
 
 ekp <- as.data.frame(gf.explicit.knowledge.net.sna$raw.nli[,1:5])
 ekp$name <- rownames(ekp)
-ekp$net <- "explicit component > 50%"
+ekp$net <- ">50% Explicit Knowledge"
 rownames(ekp) <- NULL
 ekp <- addNewData("lookupTable.csv", ekp, allowedVars) # add descriptive fields
 
 tkp <- as.data.frame(gf.tacit.knowledge.net.sna$raw.nli[,1:5])
 tkp$name <- rownames(tkp)
-tkp$net <- "tacit component > 50%"
+tkp$net <- ">50% Tacit Knowledge"
 rownames(tkp) <- NULL
 tkp <- addNewData("lookupTable.csv", tkp, allowedVars) # add descriptive fields
 
 ig <- as.data.frame(gf.idea.generation.net.sna$raw.nli[,1:5])
 ig$name <- rownames(ig)
-ig$net <- "idea generation"
+ig$net <- "Idea Generation"
 rownames(ig) <- NULL
 ig <- addNewData("lookupTable.csv", ig, allowedVars) # add descriptive fields
 
-gf <- rbind(kp,ekp,tkp,ig) # summary of gould-fernandez
+gf <- rbind(ekp,tkp,ig) # summary of gould-fernandez
 
 write.csv(gf, file = "gould-fernandez.csv", row.names = FALSE)
 
 # Plot graphs.
 
 melted <- melt(gf, id.vars = c("name","employer","net"))
-melted$net <- factor(melted$net, levels = c("all knowledge", "explicit component > 50%", "tacit component > 50%", "idea generation"))
+melted$net <- factor(melted$net, levels = c(">50% Explicit Knowledge", ">50% Tacit Knowledge", "Idea Generation"))
 
 
-ggplot(melted, aes(variable,value,fill = name)) +
+ggplot(melted, aes(variable,value, fill = net)) +
   geom_bar(stat="identity") +
   facet_grid(.~net) +
   theme_fivethirtyeight() +
+  scale_x_discrete(name = "", labels = c("Coordinator", "Itinerant Broker", "Gatekeeper", "Representative", "Liaison")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 8)) +
   theme(legend.position="none")
   
 

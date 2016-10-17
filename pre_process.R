@@ -18,13 +18,13 @@ library(devtools) # so we can use source_url
 ## Case 1
 
 # setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 1") # MacBook
-setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # Home PC
+# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # work PC
 
 ## Case 2
 
 #setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # work PC
 
 ## Case 3

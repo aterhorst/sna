@@ -21,7 +21,7 @@ library(extrafont)
 ## Case 1
 
 # setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 1") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/case 1") # work PC
 
 ## Case 2
@@ -63,8 +63,8 @@ lo <- layout_with_kk(knowledge.provider.net)
 #                   options = list(edge.cut=1, init.interactions=1, simmer.attraction=0), 
 #                   fixed = NULL, dim = 2)
 
-tkplot(explicit.knowledge.net, layout = lo) # adjust in tkplot
-lo2 = tkplot.getcoords(4) # grab coordinates from tkplot
+tkplot(explicit.knowledge.net, layout = lo2) # adjust in tkplot
+lo2 = tkplot.getcoords(2) # grab coordinates from tkplot
 
 write.csv(lo2, file = "graph_layout.csv", row.names = F, col.names = F)
  
@@ -100,7 +100,7 @@ par(mfcol = c(1,3), mar = c(1,1,12,1), oma = c(2,2,2,2), bg = "white") # create 
      
 plot(explicit.knowledge.net, edge.arrow.size = arrow_size, 
      vertex.color = col.scale[employer], 
-     vertex.size = (1/V(knowledge.provider.net)$constraint)*scalar,
+     vertex.size = (1/V(explicit.knowledge.net)$constraint)*scalar,
      vertex.label.family="Arial",
      vertex.label.cex = label_size, 
      vertex.label = V(explicit.knowledge.net)$vertex.id,
@@ -116,7 +116,7 @@ text(0.90, 0.80, labels = paste0('density = ', round(edge_density(explicit.knowl
 ## 2
 plot(tacit.knowledge.net, edge.arrow.size = arrow_size, 
      vertex.color = col.scale[employer], 
-     vertex.size = (1/V(knowledge.provider.net)$constraint)*scalar,
+     vertex.size = (1/V(tacit.knowledge.net)$constraint)*scalar,
      vertex.label.family="Arial",
      vertex.label.cex = label_size, 
      vertex.label = V(tacit.knowledge.net)$vertex.id,

@@ -39,7 +39,7 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3")
 # Load and convert igraph objects saved as .rda files.
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
-                  "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
+                  "idea.contributor.net", "idea.transformer.net", "affect.based.trust.net", 
                   "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
 for (g in graph.list){
@@ -66,7 +66,7 @@ lo <- layout_with_kk(knowledge.provider.net)
 tkplot(explicit.knowledge.net, layout = lo2) # adjust in tkplot
 lo2 = tkplot.getcoords(2) # grab coordinates from tkplot
 
-write.csv(lo2, file = "graph_layout.csv", row.names = F, col.names = F)
+write.csv(lo2, file = "graph_layout.csv", row.names = F)
  
 # Set graphing parameters.
 
@@ -129,19 +129,19 @@ text(0.9, 0.90, labels = paste0('edges = ', ecount(tacit.knowledge.net)), adj = 
 text(0.9, 0.80, labels = paste0('density = ', round(edge_density(tacit.knowledge.net),2)), adj = c(0,0), cex = anno_size)
 
 ## 3
-plot(idea.generation.net, edge.arrow.size = arrow_size,
+plot(idea.contributor.net, edge.arrow.size = arrow_size,
      vertex.color = col.scale[employer], 
-     vertex.size = (1/V(idea.generation.net)$constraint)*scalar,
+     vertex.size = (1/V(idea.contributor.net)$constraint)*scalar,
      vertex.label.family="Arial",
      vertex.label.cex = label_size, 	 
-     vertex.label = V(idea.generation.net)$vertex.id,
+     vertex.label = V(idea.contributor.net)$vertex.id,
      edge.color = "gray25",
      layout = lo2)
-title("Idea Generation", cex.main = title_size, line = shift_title)
+title("Idea Contributor", cex.main = title_size, line = shift_title)
 box(lty = 'solid', lwd = box_line,  col = 'black')
-text(0.90, 1.00, labels = paste0('nodes = ', vcount(idea.generation.net)), adj = c(0,0), cex = anno_size)
-text(0.90, 0.90, labels = paste0('edges = ', ecount(idea.generation.net)), adj = c(0,0), cex = anno_size)
-text(0.90, 0.80, labels = paste0('density = ', round(edge_density(idea.generation.net),2)), adj = c(0,0), cex = anno_size)
+text(0.90, 1.00, labels = paste0('nodes = ', vcount(idea.contributor.net)), adj = c(0,0), cex = anno_size)
+text(0.90, 0.90, labels = paste0('edges = ', ecount(idea.contributor.net)), adj = c(0,0), cex = anno_size)
+text(0.90, 0.80, labels = paste0('density = ', round(edge_density(idea.contributor.net),2)), adj = c(0,0), cex = anno_size)
 
 
 

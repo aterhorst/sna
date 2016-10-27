@@ -2,7 +2,7 @@
 #                                                   #
 #            R script to compute geographic         #
 #         distance between people in a network      #
-#                   Version 20161006                #
+#                   Version 20161022                #
 #                                                   #
 #####################################################
 
@@ -19,6 +19,7 @@ library(ggthemes)
 library(MASS)
 library(Matrix)
 library(scales)
+library(RColorBrewer)
 
 
 
@@ -79,15 +80,9 @@ edge.dat <- dat %>%
 
 edge.dat <- subset(edge.dat, select = c(id1, id2, distance)) 
 
-# Option 1 - set threshold.
+# Compute log distance.
 
-# edge.dat$scale.dist <- ifelse(edge.dat$distance >= 2000, 2000, edge.dat$distance) # distance category
-# 
-# edge.dat$scale.dist <- rescale(edge.dat$scale.dist, to = c(0,1), from = range(edge.dat$scale.dist))
-
-# Option 2 - use log distance.
-
-edge.dat$log.dist <- log1p(edge.dat$distance) # convert to metres, add constant to get +ve log values.
+edge.dat$log.dist <- log1p(edge.dat$distance) 
 
 # Create network object using iGraph.
 
@@ -95,43 +90,56 @@ edge.net <- graph.data.frame(edge.dat, directed = T)
 
 # Generate adjacency matrix using iGraph.
 
-edge.matrix <- get.adjacency(edge.net, sparse = F, attr = "log.dist", type = "upper", names = F) # absolute geodistance
+edge.matrix.export <- get.adjacency(edge.net, sparse = F, attr = "log.dist", type = "upper", names = F) # absolute geodistance
 
 # Write out proximity matrix.
 
-write.matrix(edge.matrix, file = "geoproximity.txt", sep = "\t")
+write.matrix(edge.matrix.export, file = "log.spherical.distance.txt", sep = "\t")
 
 # Create heatmap plot.
 
-# With gplots ...(ugly)
-
-heatmap.2(
-  edge.matrix,
-  Rowv = F,
-  Colv = F,
-  symm = T,
-  trace = "none",
-  dendrogram = 'none', 
-  scale = 'none',
-  density.info = "none")
 
 # With ggplot2 ...(beautiful)
 
-melted <- melt(edge.matrix)
-n <- nrow(dat)
+edge.matrix.km <- get.adjacency(edge.net, sparse = F, attr = "distance", type = "upper", names = T) 
+melted <- melt(edge.matrix.km)
 
-ggplot(data = melted, aes(x=Var1, y=Var2, fill=value)) +
-  geom_tile() +
-  scale_x_continuous(breaks = c(1:n)) +
-  scale_y_continuous(breaks = c(1:n)) +
-  theme_fivethirtyeight() +
-  scale_fill_continuous(name="LOG SPHERICAL\nDISTANCE (m)") +
-  theme(axis.title.x = element_blank(),
-    axis.title.y = element_blank(),
-    legend.text = element_text(size = 8, angle = 45),
-    legend.text.align = 1,
-    panel.grid.major = element_blank(),
-    panel.border = element_blank(),
-    panel.background = element_blank(),
-    axis.ticks = element_blank())
+
+melted$Var1 <- factor(melted$Var1)
+melted$Var2 <- factor(melted$Var2)
+myPalette <- colorRampPalette(rev(brewer.pal(11 , "Spectral")), space="Lab")
+s <- seq(0, max(edge.dat$distance), 4000)
+# l <- c("0 km", "5000 km", "10000 km", "15000km")
+
+zp1 <- ggplot(melted,
+              aes(x = Var2, y = Var1, fill = value))
+zp1 <- zp1 + geom_tile()
+zp1 <- zp1 + scale_fill_gradientn(colours = myPalette(100), name="SPHERICAL DISTANCE (km) ", breaks = s)
+zp1 <- zp1 + scale_x_discrete(expand = c(0, 0))
+zp1 <- zp1 + scale_y_discrete(expand = c(0, 0))
+zp1 <- zp1 + coord_equal()
+zp1 <- zp1 + theme_fivethirtyeight()
+zp1 <- zp1 + theme(axis.title.x = element_blank(), axis.title.y = element_blank(),
+                   legend.text = element_text(size = 12),
+                   legend.text.align = 0.5,
+                   axis.text.x = element_text(size = 12),
+                   axis.text.y = element_text(size = 12))
+zp1 <- zp1 + guides(fill = guide_colorbar(barwidth = 15, barheight = 1))
+
+print(zp1)
+
+dev.print(device = pdf, width = 10, height = 10.75, "sph_distance.pdf")
+
+library(lattice)
+library(gplots)
+
+col <- colorRampPalette(c("#BB4444", "#EE9988", "#FFFFFF", "#77AADD", "#4477AA"))
+YlOrBr <- c("#FFFFD4", "#FED98E", "#FE9929", "#D95F0E", "#993404")
+
+
+levelplot(edge.matrix, scales=list(tck=0, x=list(rot=0)),
+          col.regions = colorRampPalette(YlOrBr, space = "Lab"),
+#          colorkey=list(space="bottom"),
+main="Spherical Distance Between Actors",
+          xlab=NULL, ylab=NULL)
 

@@ -20,7 +20,7 @@ library(Matrix)
 # Delete vertices with NA values (remove isolates). Condition on two attributes: age, work location.
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
-                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
+                "idea.contributor.net", "idea.transformer.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
 for(g in graph.list){

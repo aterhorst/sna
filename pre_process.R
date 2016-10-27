@@ -2,7 +2,7 @@
 #                                                   #
 #      R script to generate igraph networks         #
 #  from raw .xlsx file downloaded from onasurveys   #
-#               Version 2016-09-23                  #      
+#               Version 2016-10-23                  #      
 #                                                   #
 #####################################################
 
@@ -30,7 +30,7 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2")
 ## Case 3
 
 # setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # Home PC
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # work PC
 
 
@@ -120,25 +120,18 @@ edge.knowledge <- subset(edge.knowledge, select = c(from, to, tacit)) # purge un
 edge.tacit.knowledge <- filter(edge.knowledge, tacit > 0.5) # filter predominantly tacit knowledge sharing ties
 edge.explicit.knowledge <- filter(edge.knowledge, tacit < 0.5)
 
-# Generate knowledge provider graphs from ties, nodes.
+# Generate knowledge provider graphs from ties, nodes (directionality must still be fixed). 
 
 knowledge.provider.net <- graph.data.frame(edge.knowledge, node.summary, directed = TRUE)
 tacit.knowledge.net <- graph.data.frame(edge.tacit.knowledge, node.summary, directed = TRUE)
 explicit.knowledge.net <- graph.data.frame(edge.explicit.knowledge, node.summary, directed = TRUE)
 
-# Reverse direction of ties.
-
-source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
-knowledge.provider.net <- graph.reverse(knowledge.provider.net) # fix direction of knowledge provider ties
-tacit.knowledge.net <- graph.reverse(tacit.knowledge.net) # fix direction of knowledge provider ties
-explicit.knowledge.net <- graph.reverse(explicit.knowledge.net)
-
 # Generate other edge lists.
 
-edge.idea.generation <- filter(edge.all, relationship_set_idea_generation == 1) # extract idea generation with ties
-edge.idea.generation <- subset(edge.idea.generation, select = c(from, to)) # purge unwanted columns
-edge.idea.realisation <- filter(edge.all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
-edge.idea.realisation <- subset(edge.idea.realisation, select = c(from, to)) # purge unwanted columns
+edge.idea.contributor <- filter(edge.all, relationship_set_idea_generation == 1) # extract idea generation with ties
+edge.idea.contributor <- subset(edge.idea.contributor, select = c(from, to)) # purge unwanted columns
+edge.idea.transformer <- filter(edge.all, relationship_set_idea_realisation == 1) # extract idea realisation with ties
+edge.idea.transformer <- subset(edge.idea.transformer, select = c(from, to)) # purge unwanted columns
 edge.affect.based.trust <- filter(edge.all, relationship_set_affectbased_trust == 1) # extract affect-based trust ties
 edge.affect.based.trust <- subset(edge.affect.based.trust, select = c(from, to)) # purge unwanted columns
 edge.cognition.based.trust <- filter(edge.all, relationship_set_cognitionbased_trust == 1) # extract cognition-based trust ties
@@ -150,17 +143,26 @@ edge.report.to <- subset(edge.report.to, select = c(from, to)) # purge unwanted 
 
 # Generate other graphs.
 
-idea.generation.net <- graph.data.frame(edge.idea.generation, node.summary, directed = TRUE) # ideation network
-idea.realisation.net <- graph.data.frame(edge.idea.realisation, node.summary, directed = TRUE) # idea realisation network 
+idea.contributor.net <- graph.data.frame(edge.idea.contributor, node.summary, directed = TRUE) # ideation network
+idea.transformer.net <- graph.data.frame(edge.idea.transformer, node.summary, directed = TRUE) # idea realisation network 
 affect.based.trust.net <- graph.data.frame(edge.affect.based.trust, node.summary, directed = TRUE) # affect-based trust network
 cognition.based.trust.net <- graph.data.frame(edge.cognition.based.trust, node.summary, directed = TRUE) # cognition-based trust network
 prior.relationship.net <- graph.data.frame(edge.prior.relationship, node.summary, directed = TRUE) # prior relationships network
 report.to.net <- graph.data.frame(edge.report.to, node.summary, directed = TRUE) # manager network
 
+# Reverse direction of ties.
+
+source_url("https://raw.githubusercontent.com/aterhorst/sna/master/reverse_direction.R", sha1 = NULL) # function to reverse ties
+knowledge.provider.net <- graph.reverse(knowledge.provider.net) # fix direction of knowledge provider ties
+tacit.knowledge.net <- graph.reverse(tacit.knowledge.net) # fix direction of knowledge provider ties
+explicit.knowledge.net <- graph.reverse(explicit.knowledge.net)
+idea.contributor.net <- graph.reverse(idea.contributor.net)
+
+
 # Simplify graphs (remove multiple edges).
 
 graph.list <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
-                "idea.generation.net", "idea.realisation.net", "affect.based.trust.net", 
+                "idea.contributor.net", "idea.transformer.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", 
                 "report.to.net")
 

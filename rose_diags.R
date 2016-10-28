@@ -6,7 +6,7 @@
 #                                                   #
 #####################################################
 
-# Load requiiste libraries.
+# Load requisite libraries.
 
 library(ggplot2)
 library(plyr)
@@ -16,22 +16,22 @@ library(showtext)
 
 # Set working directory.
 
-# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
+setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
 setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data") # work PC
 
 
 # Load categorical data generated using export_to_MPNet.R.
 
-hf_cat <- na.omit(read.table("HF/MPNet Data/categorical_data.txt", sep = "", header = T))
-amr_cat <- na.omit(read.table("AMR/MPNet Data/categorical_data.txt", sep = "", header = T))
-gihh_cat <- na.omit(read.table("GIHH/MPNet Data/categorical_data.txt", sep = "", header = T))
+hf_cat <- na.omit(read.table("Case 1/MPNet Data/categorical_data.txt", sep = "", header = T))
+amr_cat <- na.omit(read.table("Case 2/MPNet Data/categorical_data.txt", sep = "", header = T))
+gihh_cat <- na.omit(read.table("Case 3/MPNet Data/categorical_data.txt", sep = "", header = T))
 
 # load continuous data generated using export_to_MPNet.R
 
-hf_cont <- na.omit(read.table("HF/MPNet Data/continuous_data.txt", sep = "", header = T))
-amr_cont <- na.omit(read.table("AMR/MPNet Data/continuous_data.txt", sep = "", header = T))
-gihh_cont <- na.omit(read.table("GIHH/MPNet Data/continuous_data.txt", sep = "", header = T))
+hf_cont <- na.omit(read.table("Case 1/MPNet Data/continuous_data.txt", sep = "", header = T))
+amr_cont <- na.omit(read.table("Case 2/MPNet Data/continuous_data.txt", sep = "", header = T))
+gihh_cont <- na.omit(read.table("Case 3/MPNet Data/continuous_data.txt", sep = "", header = T))
 
 # merge continuous data
 
@@ -101,7 +101,7 @@ ed_field <- c("Natural & Physical Sciences", "Information Technology", "Engineer
 # Plot 1
 
 
-svg(file = "ed_level_rose.svg", width = 5, height = 4)
+svg(file = "ed_level_rose.svg", width = 6, height = 4)
 
 ggplot(ed_rose, aes(factor(education.level), freq, fill = factor(education.level))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
@@ -124,7 +124,7 @@ dev.off()
 
 # Plot 2
 
-pdf(file = "ed_field_rose.pdf")
+svg(file = "ed_field_rose.svg", width = 6, height = 5)
 
 ggplot(field_rose, aes(factor(broad.education.field), freq, fill = factor(broad.education.field))) +
   geom_bar(stat = "identity", position = "dodge", color = "white") + 
@@ -148,7 +148,7 @@ dev.off()
 
 # Plot 3.
 
-pdf(file = "age_experience_tenure.pdf")
+svg(file = "age_experience.svg", width = 6, height = 6)
 
 cont$case <- as.factor(cont$case)
 
@@ -156,15 +156,16 @@ dat.m <- melt(cont,id.vars = 'case', measure.vars=c('age','work.experience','cur
 
 p <- ggplot(dat.m) +
   theme_fivethirtyeight() +
-  theme(axis.title = element_text(), 
-        strip.text.x = element_text(size=12),
-        axis.text.x = element_text(angle = 45)) +
+  theme(axis.title = element_text(size = 10), 
+        strip.text.x = element_text(size=12)) +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, size = 8)) +
+  theme(axis.text.y = element_text(size = 8)) +
   ylab('Years') +
-  geom_boxplot(aes(x=factor(variable), y = value, fill = variable), width = 0.5, outlier.colour = NA) +
-  geom_jitter(alpha=0.3, aes(x=factor(variable), y = value), color= "black",position = position_jitter(width = .2))+
+  geom_boxplot(aes(x=factor(variable), y = value, fill = variable), width = 0.35, outlier.colour = NA) +
+  geom_jitter(alpha=0.2, aes(x=factor(variable), y = value), color= "black",position = position_jitter(width = .2))+
   facet_wrap(~case, labeller = as_labeller(case_id)) +
   scale_y_continuous(breaks = c(0,5,10,15,20,25,30,35,40,45,50,55,60,65,70)) +
-  scale_x_discrete(name = "", labels = c("Age", "Work\nExperience", "Current Job\nTenure")) +
+  scale_x_discrete(name = "", labels = c("Age", "Work \nExperience", "Job \nTenure")) +
   theme(legend.position = "none")
 p                      
 

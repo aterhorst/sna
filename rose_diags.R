@@ -111,10 +111,12 @@ ggplot(ed_rose, aes(factor(education.level), freq, fill = factor(education.level
   theme_fivethirtyeight()+
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        legend.text=element_text(size=8),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 10)) +
+        axis.title.y = element_blank()
+        # 
+        # legend.text=element_text(size=8),
+        # legend.text = element_text(size = 8),
+        # legend.title = element_text(size = 10)
+        ) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
   guides(fill=guide_legend(ncol=2)) +
   scale_fill_discrete(name="EDUCATION LEVEL",
@@ -135,9 +137,10 @@ ggplot(field_rose, aes(factor(broad.education.field), freq, fill = factor(broad.
   # theme_bw() +
   theme(axis.text.x = element_blank(), axis.text.y = element_blank(), 
         axis.ticks = element_blank(), axis.title.x = element_blank(), 
-        axis.title.y = element_blank(),
-        legend.text = element_text(size = 8),
-        legend.title = element_text(size = 10)) +
+        axis.title.y = element_blank()
+        # legend.text = element_text(size = 8),
+        # legend.title = element_text(size = 10)
+        ) +
   facet_wrap(~ case, labeller = as_labeller(case_id)) +
   guides(fill=guide_legend(ncol=2)) +
   scale_fill_discrete(name="EDUCATION FIELD",

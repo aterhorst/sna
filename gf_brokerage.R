@@ -66,7 +66,7 @@ for (g in graph.list.2){
 graph.list.3 <- c("explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.contributor.net.sna")
 
 for (g in graph.list.3){
-  eval(parse(text = paste0('gf.', g,' <- brokerage(', g,', knowledge.provider.net.sna%v%"employer")')))
+  eval(parse(text = paste0('gf.', g,' <- brokerage(', g,', ', g,'%v%"employer")')))
 }
 
 
@@ -104,16 +104,16 @@ write.csv(gf, file = "gould-fernandez.csv", row.names = FALSE)
 melted <- melt(gf, id.vars = c("name","employer","net"))
 melted$net <- factor(melted$net, levels = c("Explicit Knowledge Provider", "Tacit Knowledge Provider", "Idea Contributor"))
 
+pdf(file = "gf_brokerage.pdf", width = 7, height = 5)
 
 ggplot(melted, aes(variable,value, fill = net)) +
   geom_bar(stat="identity") +
   facet_grid(.~net) +
   theme_fivethirtyeight() +
-  scale_x_discrete(name = "", labels = c("Coordination", "Itinerant Broker", "Gatekeeper", "Representative", "Liaison")) +
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 14)) +
+  scale_x_discrete(name = "", labels = c("Coordination", "Itinerant Broker", "Representative", "Gatekeeper", "Liaison")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5, size = 10)) +
   theme(legend.position="none") +
-  theme(axis.text.y = element_text(size = 14)) +
-  theme(strip.text = element_text(size=18))
+  theme(axis.text.y = element_text(size = 10)) +
+  theme(strip.text = element_text(size=12))
   
-dev.print(device = png, width = 1000, height = 800, units = "px", "gf_brokerage.png")
-
+dev.off()

@@ -14,6 +14,8 @@ library(purrr)
 library(ggmap)
 library(RColorBrewer)
 library(reshape)
+library(MASS)
+library(Matrix)
 
 
 setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
@@ -60,37 +62,37 @@ man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
 # extract data range
 
-man_2012_13 <- filter(man, man$`Publisher Notification Date` >= "2012-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
+man <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
 
 # create ragged edge dataframe
 
-aut_2012_13 <- str_split_fixed(man_2012_13$Author, ";", n = 160) # max number of co-authors
+aut <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
 
 # reverse lastname, firstname (thanks to Alex Whan)
 
 rev_name <- function(string, pattern = ", ") {paste(rev(unlist(strsplit(string, pattern))), collapse = " ")} 
-aut_2012_13 <- aut_2012_13 %>%  as_data_frame %>%  map_df(map, rev_name) %>%  map_df(unlist)
-aut_2012_13 <- as.data.frame(t(apply(aut_2012_13,1,function(x) gsub("+ "," ",x)))) # fix double white space
-aut_2012_13 <- as.data.frame(t(apply(aut_2012_13,1,function(x) gsub(" +"," ",x)))) # fix leading white space
+aut <- aut %>%  as_data_frame %>%  map_df(map, rev_name) %>%  map_df(unlist)
+aut <- as.data.frame(t(apply(aut,1,function(x) gsub("+ "," ",x)))) # fix double white space
+aut <- as.data.frame(t(apply(aut,1,function(x) gsub(" +"," ",x)))) # fix leading white space
 
 # trim to 20 co-authors max (arbitrary limit)
 
-aut_2012_13 <- as.data.frame(aut_2012_13[,1:20])
+aut <- as.data.frame(aut[,1:20])
 
-# individual publications stats
-
-simplify <- melt(aut_2012_13, id.vars=0)
-pubtots <- simplify %>% group_by(value) %>% summarise(count = n())
-pubtots$FullName <- as.character(pubtots$FullName)
-colnames(pubtots)[colnames(pubtots) == "value"] <- "FullName"
-colnames(pubtots)[colnames(pubtots) == "count"] <- "Publications"
-groups <- left_join(groups,pubtots, by = "FullName")
+# # individual publications stats
+# 
+# simplify <- melt(aut, id.vars=0)
+# pubtots <- simplify %>% group_by(value) %>% summarise(count = n())
+# colnames(pubtots)[colnames(pubtots) == "value"] <- "FullName"
+# colnames(pubtots)[colnames(pubtots) == "count"] <- "Publications"
+# pubtots$FullName <- as.character(pubtots$FullName)
+# groups <- left_join(groups,pubtots, by = "FullName")
 
 # create dyads
 
 ## match authors to groups (thanks to Alec Stephenson)
 
-nauthors <- t(apply(aut_2012_13, 1, function(x) match(x, groups$FullName))) # issue starts here
+nauthors <- t(apply(aut, 1, function(x) match(x, groups$FullName)))
 
 ## generate a clean list of co-authors
 
@@ -113,17 +115,17 @@ g <- graph.edgelist(links, directed=FALSE)
 
 # generate attribute info
 
-bu <- factor(groups$Abbreviation[as.numeric(V(g)$name)])
+bu <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
 place <- factor(groups$LocationCode[as.numeric(V(g)$name)])
 person <- factor(groups$FullName[as.numeric(V(g)$name)])
-prod <- factor(groups$Publications[as.numeric(V(g)$name)])
+# prod <- factor(groups$Publications[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
 V(g)$author <- as.character(person) # name of person
 V(g)$bu <- as.character(bu) # bu name
 V(g)$location <- as.character(place) # place of work
-V(g)$publications <- as.character(prod) # how many publications produced in period
+# V(g)$publications <- as.character(prod) # how many publications produced in period
 
 # sanity check
 
@@ -157,6 +159,15 @@ dev.off() #close the device
 
 # export to MPNet
 
-actor_attributes <- get.vertex.attribute(g)
+adjmatrix <- get.adjacency(g)
+write.matrix(adjmatrix, file = "coauthor_adj_mpnet.txt")
+
+actor_attributes <- as.data.frame(get.vertex.attribute(g))
+
+# continuous_dat <- subset(actor_attributes, select = "publications")
+categorical_dat <- subset(actor_attributes, select = c("bu", "location"))
+# write.table(continuous_dat, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical_dat, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+
 
 

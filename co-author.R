@@ -11,8 +11,7 @@ library(plyr)
 library(dplyr)
 library(stringr)
 library(purrr)
-library(ggmap)
-library(RColorBrewer)
+library(randomcoloR)
 library(reshape)
 library(MASS)
 library(Matrix)
@@ -25,14 +24,13 @@ setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 ## people info
 
 groups <- read_excel("people_places.xlsx") # extracted from PeopleServ.csiro.au
-groups <- subset(groups, select = c("FullName","UserName", "BusinessUnitCode", "LocationCode"))
+groups <- subset(groups, select = c("FullName","ManagerName", "PersonnelNumber", "BusinessUnitCode", "LocationCode"))
 groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
-colnames(groups)[colnames(groups) == "UserName"] <- "Ident"
 
 ## organisational detail
 
 org <- read_excel("org_units.xlsx") # extracted from OrgUnitServ.csiro.au
-org <- subset(org, select = c("DepartmentCode", "Abbreviation", "LineOfBusiness"))
+org <- subset(org, select = c("DepartmentCode", "Name", "LineOfBusiness"))
 colnames(org)[colnames(org) == "DepartmentCode"] <- "BusinessUnitCode"
 org$BusinessUnitCode <- as.integer(org$BusinessUnitCode)
 
@@ -44,23 +42,25 @@ colnames(loc)[colnames(loc) == "Code"] <- "LocationCode"
 
 ## combine people, org, location info
 
-groups <- full_join(groups,org, by = "BusinessUnitCode")
-groups <- full_join(groups,loc, by = "LocationCode")
+groups <- left_join(groups,org, by = "BusinessUnitCode")
+groups <- left_join(groups,loc, by = "LocationCode")
 extract <- c("IS", "NF") # science areas
 groups <- filter(groups, LineOfBusiness %in% extract) # subset according to science areas
 groups <- cbind(id = 1:nrow(groups), groups) # index rows
+groups$Name[groups$Name == "CSIRO ASTRONOMY & SPACE SCIENCE"] <- "ASTRONOMY & SPACE SCIENCE"
+groups$Name[groups$Name == "NATL COLLECTIONS & MARINE INFRASTRUCTURE"] <- "NATIONAL COLLECTIONS & MARINE INFRASTRUCTURE"
 
-## geocode locations
 
-# groups$location <- with(groups, paste0(Country," postcode ", PostCode))
-# groups$geocode <- geocode(groups$location, sensor = FALSE, output = "latlon", source = "google")
+# compute level in hierachy
+
+# reportto <- na.omit(subset(groups, select = c("ManagerName","FullName")))
 
 # import publication data
 
 man <- na.omit(read_excel("ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
 man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
-# extract data range
+# extract date range(s) - need to repeat everything from here on for each date range.
 
 man <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
 
@@ -71,22 +71,13 @@ aut <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
 # reverse lastname, firstname (thanks to Alex Whan)
 
 rev_name <- function(string, pattern = ", ") {paste(rev(unlist(strsplit(string, pattern))), collapse = " ")} 
-aut <- aut %>%  as_data_frame %>%  map_df(map, rev_name) %>%  map_df(unlist)
+aut <- aut %>% as_data_frame %>% map_df(map, rev_name) %>%  map_df(unlist)
 aut <- as.data.frame(t(apply(aut,1,function(x) gsub("+ "," ",x)))) # fix double white space
 aut <- as.data.frame(t(apply(aut,1,function(x) gsub(" +"," ",x)))) # fix leading white space
 
 # trim to 20 co-authors max (arbitrary limit)
 
 aut <- as.data.frame(aut[,1:20])
-
-# # individual publications stats
-# 
-# simplify <- melt(aut, id.vars=0)
-# pubtots <- simplify %>% group_by(value) %>% summarise(count = n())
-# colnames(pubtots)[colnames(pubtots) == "value"] <- "FullName"
-# colnames(pubtots)[colnames(pubtots) == "count"] <- "Publications"
-# pubtots$FullName <- as.character(pubtots$FullName)
-# groups <- left_join(groups,pubtots, by = "FullName")
 
 # create dyads
 
@@ -111,30 +102,27 @@ links <- matrix(as.character(links), ncol=2) # convert dyads to edge matrix
 
 # undirected graph generated from edge matrix
 
+require(igraph)
 g <- graph.edgelist(links, directed=FALSE) 
 
 # generate attribute info
 
-bu <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
-place <- factor(groups$LocationCode[as.numeric(V(g)$name)])
-person <- factor(groups$FullName[as.numeric(V(g)$name)])
-# prod <- factor(groups$Publications[as.numeric(V(g)$name)])
+bu_code <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
+bu_name<- factor(groups$Name[as.numeric(V(g)$name)])
+location_id <- factor(groups$LocationCode[as.numeric(V(g)$name)])
+co_author <- factor(groups$FullName[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
-V(g)$author <- as.character(person) # name of person
-V(g)$bu <- as.character(bu) # bu name
-V(g)$location <- as.character(place) # place of work
-# V(g)$publications <- as.character(prod) # how many publications produced in period
+V(g)$author <- as.character(co_author) # name of co-author
+V(g)$buname <- as.character(bu_name) # bu name
+V(g)$bucode <- as.numeric(bu_code) # bu code
+V(g)$location <- as.character(location_id) # place of work
 
-# sanity check
+# sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
-ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # check against nauthors
-ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all")
-
-# export as gml file
-
-write.graph(g, "co-author.gml", "gml")
+ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
+ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
 # plotting
 
@@ -145,17 +133,47 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 ## configure display parameters
 
+bus <- factor(V(g)$buname) 
+n <- max(unlist(as.integer(bu_name))) 
+gc() # garbage collection
+col.scale <- randomColor(n, hue = "random", luminosity = "bright") 
 V(gc)$size <- degree(gc)/5
-div <- factor(V(gc)$bu)
-cols <- c("yellow","orange","red","darkred","blue","darkblue","darkgreen","black","lightblue","violet","pink")
+legend <- factor(V(gc)$buname)
+lo <- layout_with_fr(gc)
 
 ## generate graph
 
 pdf("co-author.pdf",width=15,height=15) #call the pdf writer
-plot(gc,vertex.color = cols[as.numeric(bu)], vertex.label=NA, vertex.size=V(gc)$size, edge.width=0.8, layout=layout.kamada.kawai)
-# title(main = "CSIRO co-authorship network 2011-12",cex.main=2.5)
-legend(1,1,legend=levels(div),col=cols, pch = 16, cex=1.25)
+
+plot(gc, vertex.color = col.scale[bus], 
+     vertex.label=NA, 
+     vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
+
+title(main = "CSIRO co-authorship network 2013",cex.main=2)
+legend(0.55,1.1,legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8)
 dev.off() #close the device
+
+
+# node statistics
+
+## centrality 
+metrics <- data.frame(
+  name = V(g)$author,
+  bu = V(g)$bucode,
+  loc = V(g)$location,
+  deg = degree(g), # degree
+  btw = betweenness(g), # betweenness 
+  clo = closeness(g), # closeness
+  eig = evcent(g)$vector) # eigenvector centrality
+  
+## homophily
+
+
+
+# export as gml file to display in Gephi
+
+write.graph(g, "co-author.gml", "gml")
+
 
 # export to MPNet
 

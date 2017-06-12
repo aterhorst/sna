@@ -24,17 +24,28 @@ setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 ## people info
 
 groups <- read_excel("people_places.xlsx") # extracted from PeopleServ.csiro.au
-groups <- subset(groups, select = c("FullName","ManagerName", "PersonnelNumber", "BusinessUnitCode", "LocationCode"))
+
+## compute level in hierachy
+
+reportto <- as.data.frame(subset(groups, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
+g <- graph_from_data_frame(reportto)
+rank <- data.frame(PersonnelNumber = names(shortest.paths(g)[,'00022937']), RankHierarchy = shortest.paths(g)[,'00022937']+1) # 00022937 is CEO
+rank$PersonnelNumber <- as.character(rank$PersonnelNumber)
+groups <- full_join(groups,rank, by = "PersonnelNumber")
+
+## remove garbage columns from groups
+
+groups <- subset(groups, select = c("FullName","ManagerName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "RankHierarchy"))
 groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
 
-## organisational detail
+## add organisational detail
 
 org <- read_excel("org_units.xlsx") # extracted from OrgUnitServ.csiro.au
 org <- subset(org, select = c("DepartmentCode", "Name", "LineOfBusiness"))
 colnames(org)[colnames(org) == "DepartmentCode"] <- "BusinessUnitCode"
 org$BusinessUnitCode <- as.integer(org$BusinessUnitCode)
 
-## work location
+## add work location info
 
 loc <- read_excel("csiro_location.xlsx") # extracted from LocationServ.csiro.au
 loc <- subset(loc, select = c("Code","City","Country","PostCode"))
@@ -44,16 +55,18 @@ colnames(loc)[colnames(loc) == "Code"] <- "LocationCode"
 
 groups <- left_join(groups,org, by = "BusinessUnitCode")
 groups <- left_join(groups,loc, by = "LocationCode")
+
+## focus on science areas (core business)
+
 extract <- c("IS", "NF") # science areas
 groups <- filter(groups, LineOfBusiness %in% extract) # subset according to science areas
 groups <- cbind(id = 1:nrow(groups), groups) # index rows
+
+## fix crappy bu names
+
 groups$Name[groups$Name == "CSIRO ASTRONOMY & SPACE SCIENCE"] <- "ASTRONOMY & SPACE SCIENCE"
 groups$Name[groups$Name == "NATL COLLECTIONS & MARINE INFRASTRUCTURE"] <- "NATIONAL COLLECTIONS & MARINE INFRASTRUCTURE"
 
-
-# compute level in hierachy
-
-# reportto <- na.omit(subset(groups, select = c("ManagerName","FullName")))
 
 # import publication data
 
@@ -111,13 +124,15 @@ bu_code <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
 bu_name<- factor(groups$Name[as.numeric(V(g)$name)])
 location_id <- factor(groups$LocationCode[as.numeric(V(g)$name)])
 co_author <- factor(groups$FullName[as.numeric(V(g)$name)])
+org_rank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
 V(g)$author <- as.character(co_author) # name of co-author
 V(g)$buname <- as.character(bu_name) # bu name
-V(g)$bucode <- as.numeric(bu_code) # bu code
+V(g)$bucode <- as.character(bu_code) # bu code
 V(g)$location <- as.character(location_id) # place of work
+V(g)$rank <- as.character(org_rank) # level in hierarchy
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
@@ -168,11 +183,12 @@ metrics <- data.frame(
   
 ## homophily
 
-
+# work in progress. idea is to calculate heterogeneity (diversity).
 
 # export as gml file to display in Gephi
 
 write.graph(g, "co-author.gml", "gml")
+write.graph(g, "pajek.txt", "pajek")
 
 
 # export to MPNet
@@ -182,9 +198,9 @@ write.matrix(adjmatrix, file = "coauthor_adj_mpnet.txt")
 
 actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
-# continuous_dat <- subset(actor_attributes, select = "publications")
+continuous_dat <- subset(actor_attributes, select = "rank")
 categorical_dat <- subset(actor_attributes, select = c("bu", "location"))
-# write.table(continuous_dat, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(continuous_dat, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 write.table(categorical_dat, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 

@@ -23,15 +23,21 @@ setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 
 ## people info
 
-groups <- read_excel("people_places.xlsx") # extracted from PeopleServ.csiro.au
+groups_now <- read_excel("data/people_places.xlsx") # extracted from PeopleServ.csiro.au
+groups_old <- read.csv("data/people_2013.csv", as.is = c(TRUE,FALSE), header = TRUE)
+
 
 ## compute level in hierachy
 
-reportto <- as.data.frame(subset(groups, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
+reportto <- as.data.frame(subset(groups_now, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
 g <- graph_from_data_frame(reportto)
 rank <- data.frame(PersonnelNumber = names(shortest.paths(g)[,'00022937']), RankHierarchy = shortest.paths(g)[,'00022937']+1) # 00022937 is CEO
 rank$PersonnelNumber <- as.character(rank$PersonnelNumber)
-groups <- full_join(groups,rank, by = "PersonnelNumber")
+groups_now <- full_join(groups_now,rank, by = "PersonnelNumber")
+
+## extract cohort that has survived since 2013
+
+groups <- groups_now[which(groups_now$FullName %in% groups_old$name),]
 
 ## remove garbage columns from groups
 
@@ -70,12 +76,12 @@ groups$Name[groups$Name == "NATL COLLECTIONS & MARINE INFRASTRUCTURE"] <- "NATIO
 
 # import publication data
 
-man <- na.omit(read_excel("ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
+man <- na.omit(read_excel("data/ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
 man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
 # extract date range(s) - need to repeat everything from here on for each date range.
 
-man <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
+man <- filter(man, man$`Publisher Notification Date` >= "2016-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 
 # create ragged edge dataframe
 
@@ -120,24 +126,42 @@ g <- graph.edgelist(links, directed=FALSE)
 
 # generate attribute info
 
-bu_code <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
-bu_name<- factor(groups$Name[as.numeric(V(g)$name)])
-location_id <- factor(groups$LocationCode[as.numeric(V(g)$name)])
-co_author <- factor(groups$FullName[as.numeric(V(g)$name)])
-org_rank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
+buc <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
+bun <- factor(groups$Name[as.numeric(V(g)$name)])
+loc <- factor(groups$LocationCode[as.numeric(V(g)$name)])
+coauthor <- factor(groups$FullName[as.numeric(V(g)$name)])
+orgrank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
+pn <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
-V(g)$author <- as.character(co_author) # name of co-author
-V(g)$buname <- as.character(bu_name) # bu name
-V(g)$bucode <- as.character(bu_code) # bu code
-V(g)$location <- as.character(location_id) # place of work
-V(g)$rank <- as.character(org_rank) # level in hierarchy
+V(g)$employee <- as.character(coauthor) # name of co-author
+V(g)$employee_id <- as.character(pn) # person identifier
+V(g)$bu <- as.character(bun) # bu name
+V(g)$bu_id <- as.character(buc) # bu code
+V(g)$location_id <- as.character(loc) # place of work
+V(g)$org_rank <- as.character(orgrank) # level in hierarchy
+V(g)$degree <- degree(g)
+V(g)$closeness <- closeness(g)
+V(g)$betweenness <- betweenness(g)
+V(g)$evcent <- evcent(g)$vector
+
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
 ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
 ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
+
+# node statistics
+
+## Extract vertex attributes 
+
+metrics <- get.vertex.attribute(g)
+
+## homophily
+
+# work in progress. idea is to calculate heterogeneity (diversity).
+
 
 # plotting
 
@@ -148,42 +172,38 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 ## configure display parameters
 
-bus <- factor(V(g)$buname) 
-n <- max(unlist(as.integer(bu_name))) 
+bus <- factor(V(g)$bu_id) 
+n <- max(unlist(as.integer(bus))) 
 gc() # garbage collection
 col.scale <- randomColor(n, hue = "random", luminosity = "bright") 
 V(gc)$size <- degree(gc)/5
-legend <- factor(V(gc)$buname)
-lo <- layout_with_fr(gc)
+legend <- factor(V(gc)$bu_id)
+lo <- layout_with_fr(gc, niter = 200)
 
 ## generate graph
 
-pdf("co-author.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = col.scale[bus], 
      vertex.label=NA, 
      vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "CSIRO co-authorship network 2013",cex.main=2)
-legend(0.55,1.1,legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8)
+title(main = "2016",cex.main=2)
+legend("topright",legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8, title = "Business Unit", box.lty=0)
+# box(lty = 'solid', lwd = box_line,  col = 'black')
+text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
+text(-1, 0.975, labels = paste0('edges = ', ecount(g)), adj = c(0,0), cex = 0.8)
+text(-1, 0.95, labels = paste0('density = ', round(edge_density(g),4)), adj = c(0,0), cex = 0.8)
+text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(g,V(g)$bu_id),3)), adj = c(0,0), cex = 0.8)
+
 dev.off() #close the device
 
 
-# node statistics
+# export vertex attributes
 
-## centrality 
-metrics <- data.frame(
-  name = V(g)$author,
-  bu = V(g)$bucode,
-  loc = V(g)$location,
-  deg = degree(g), # degree
-  btw = betweenness(g), # betweenness 
-  clo = closeness(g), # closeness
-  eig = evcent(g)$vector) # eigenvector centrality
-  
-## homophily
+write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
 
-# work in progress. idea is to calculate heterogeneity (diversity).
+
 
 # export as gml file to display in Gephi
 
@@ -198,8 +218,8 @@ write.matrix(adjmatrix, file = "coauthor_adj_mpnet.txt")
 
 actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
-continuous_dat <- subset(actor_attributes, select = "rank")
-categorical_dat <- subset(actor_attributes, select = c("bu", "location"))
+continuous_dat <- subset(actor_attributes, select = "org_rank")
+categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id"))
 write.table(continuous_dat, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 write.table(categorical_dat, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 

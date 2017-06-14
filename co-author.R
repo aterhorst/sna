@@ -26,8 +26,7 @@ setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 groups_now <- read_excel("data/people_places.xlsx") # extracted from PeopleServ.csiro.au
 groups_old <- read.csv("data/people_2013.csv", as.is = c(TRUE,FALSE), header = TRUE)
 
-
-## compute level in hierachy
+## compute level in current hierachy
 
 reportto <- as.data.frame(subset(groups_now, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
 g <- graph_from_data_frame(reportto)
@@ -81,7 +80,7 @@ man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
 # extract date range(s) - need to repeat everything from here on for each date range.
 
-man <- filter(man, man$`Publisher Notification Date` >= "2016-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
+man <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
 
 # create ragged edge dataframe
 
@@ -145,7 +144,9 @@ V(g)$degree <- degree(g)
 V(g)$closeness <- closeness(g)
 V(g)$betweenness <- betweenness(g)
 V(g)$evcent <- evcent(g)$vector
-
+V(g)$constraint <- constraint(g)
+V(g)$evbrokerage <- ifelse(ifelse(betweenness(g) != 0, betweenness(g)*2, betweenness(g)) != 0, 
+       ifelse(betweenness(g) != 0, betweenness(g)*2, betweenness(g))/degree(g),betweenness(g))
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
@@ -201,27 +202,28 @@ dev.off() #close the device
 
 # export vertex attributes
 
-write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
+write.csv(metrics, "2013_vertex_attr.csv", row.names = F)
 
+# save as.RDA file
 
+save(g, file = "2013_co-author_net.rda")
 
 # export as gml file to display in Gephi
 
-write.graph(g, "co-author.gml", "gml")
-write.graph(g, "pajek.txt", "pajek")
+write.graph(g, "2013_co-author.gml", "gml")
 
 
 # export to MPNet
 
 adjmatrix <- get.adjacency(g)
-write.matrix(adjmatrix, file = "coauthor_adj_mpnet.txt")
+write.matrix(adjmatrix, file = "2013_coauthor_adj_mpnet.txt")
 
 actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
 continuous_dat <- subset(actor_attributes, select = "org_rank")
 categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id"))
-write.table(continuous_dat, "continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-write.table(categorical_dat, "categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(continuous_dat, "2013_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical_dat, "2013_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 
 

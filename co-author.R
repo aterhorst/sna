@@ -45,14 +45,14 @@ groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
 
 ## add organisational detail
 
-org <- read_excel("org_units.xlsx") # extracted from OrgUnitServ.csiro.au
+org <- read_excel("data/org_units.xlsx") # extracted from OrgUnitServ.csiro.au
 org <- subset(org, select = c("DepartmentCode", "Name", "LineOfBusiness"))
 colnames(org)[colnames(org) == "DepartmentCode"] <- "BusinessUnitCode"
 org$BusinessUnitCode <- as.integer(org$BusinessUnitCode)
 
 ## add work location info
 
-loc <- read_excel("csiro_location.xlsx") # extracted from LocationServ.csiro.au
+loc <- read_excel("data/csiro_location.xlsx") # extracted from LocationServ.csiro.au
 loc <- subset(loc, select = c("Code","City","Country","PostCode"))
 colnames(loc)[colnames(loc) == "Code"] <- "LocationCode"
 
@@ -77,6 +77,25 @@ groups$Name[groups$Name == "NATL COLLECTIONS & MARINE INFRASTRUCTURE"] <- "NATIO
 
 man <- na.omit(read_excel("data/ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
 man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
+
+# identify productivity stars
+
+prod1 <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
+prod2 <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
+
+rev_name <- function(string, pattern = ", ") {paste(rev(unlist(strsplit(string, pattern))), collapse = " ")} 
+
+prod2 <- prod2 %>% as_data_frame %>% map_df(map, rev_name) %>%  map_df(unlist)
+prod2 <- as.data.frame(t(apply(prod2,1,function(x) gsub("+ "," ",x)))) # fix double white space
+prod2 <- as.data.frame(t(apply(prod2,1,function(x) gsub(" +"," ",x)))) # fix leading white space
+
+prod2 <- prod2[!is.na(prod2)]
+
+prod3 <- as.data.frame(table(prod2))
+colnames(prod3)[colnames(prod3) == "prod2"] <- "FullName"
+prod3$FullName <- as.character(prod3$FullName)
+groups <- left_join(groups,prod3, by = "FullName")
+
 
 # extract date range(s) - need to repeat everything from here on for each date range.
 
@@ -131,6 +150,7 @@ loc <- factor(groups$LocationCode[as.numeric(V(g)$name)])
 coauthor <- factor(groups$FullName[as.numeric(V(g)$name)])
 orgrank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
 pn <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
+prod <- factor(groups$Freq[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
@@ -139,14 +159,16 @@ V(g)$employee_id <- as.character(pn) # person identifier
 V(g)$bu <- as.character(bun) # bu name
 V(g)$bu_id <- as.character(buc) # bu code
 V(g)$location_id <- as.character(loc) # place of work
-V(g)$org_rank <- as.character(orgrank) # level in hierarchy
+V(g)$org_rank <- as.numeric(as.character(orgrank)) # level in hierarchy
+V(g)$prod <- as.numeric(as.character(prod)) # total publications 2013-16
 V(g)$degree <- degree(g)
 V(g)$closeness <- closeness(g)
 V(g)$betweenness <- betweenness(g)
 V(g)$evcent <- evcent(g)$vector
-V(g)$constraint <- constraint(g)
-V(g)$evbrokerage <- ifelse(ifelse(betweenness(g) != 0, betweenness(g)*2, betweenness(g)) != 0, 
-       ifelse(betweenness(g) != 0, betweenness(g)*2, betweenness(g))/degree(g),betweenness(g))
+V(g)$constraint <- constraint(g) # burt's constraint measure
+V(g)$evbrokerage <- ifelse(betweenness(g) != 0, 
+                           ((betweenness(g)*2)+(vcount(g)-1))/degree(g), 
+                           betweenness(g)) # everett-valente brokerage
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
@@ -177,19 +199,20 @@ bus <- factor(V(g)$bu_id)
 n <- max(unlist(as.integer(bus))) 
 gc() # garbage collection
 col.scale <- randomColor(n, hue = "random", luminosity = "bright") 
-V(gc)$size <- degree(gc)/5
+#V(gc)$size <- V(gc)$prod / 10
+V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage)*10
 legend <- factor(V(gc)$bu_id)
-lo <- layout_with_fr(gc, niter = 200)
+lo <- layout_with_kk(gc, niter = 200)
 
 ## generate graph
 
-pdf("co-author_2016.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2013r.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = col.scale[bus], 
      vertex.label=NA, 
      vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "2016",cex.main=2)
+title(main = "Relational Stars - 2013",cex.main=2)
 legend("topright",legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)

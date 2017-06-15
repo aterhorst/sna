@@ -38,9 +38,13 @@ groups_now <- full_join(groups_now,rank, by = "PersonnelNumber")
 
 groups <- groups_now[which(groups_now$FullName %in% groups_old$name),]
 
+## create gecode field
+
+groups$CountryPostCode <- with(groups, paste0("Australia postcode ", PostCode))
+
 ## remove garbage columns from groups
 
-groups <- subset(groups, select = c("FullName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "WorkAreaCode", "RankHierarchy"))
+groups <- subset(groups, select = c("FullName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "CountryPostCode", "WorkAreaCode", "RankHierarchy"))
 groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
 
 ## add organisational detail
@@ -152,6 +156,7 @@ coauthor <- factor(groups$FullName[as.numeric(V(g)$name)])
 orgrank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
 pn <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
 prod <- factor(groups$Freq[as.numeric(V(g)$name)])
+pc <- factor(groups$CountryPostCode[as.numeric(V(g)$name)])
 
 # assign attributes to vertices
 
@@ -161,6 +166,7 @@ V(g)$bu <- as.character(bun) # bu name
 V(g)$bu_id <- as.character(buc) # bu code
 V(g)$location_id <- as.character(loc) # place of work
 V(g)$building_id <- as.character(workplace) # building 
+V(g)$geocode <- as.character(pc) # geocode variable
 V(g)$org_rank <- as.numeric(as.character(orgrank)) # level in hierarchy
 V(g)$prod <- as.numeric(as.character(prod)) # total publications 2013-16
 V(g)$degree <- degree(g)
@@ -177,11 +183,63 @@ V(g)$evbrokerage <- ifelse(betweenness(g) != 0,
 ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
 ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
-# node statistics
-
-## Extract vertex attributes 
+# Extract vertex attributes 
 
 metrics <- get.vertex.attribute(g)
+
+# Get geographic coordinates.
+
+name.place <- metrics[,c(1,2,3,30)]
+
+name.place$coordinate <- geocode(name.place$geocode, sensor = FALSE, output = "latlon", source = "google")
+
+dat <- as.data.frame(as.list(name.place[,c(2,5)]))
+
+# Following code courtesy of Bangyou Zheng:
+
+sphericalDistance <- function (lat1, lon1, lat2, lon2)
+{
+  lon1 <- lon1 * pi/180
+  lat1 <- lat1 * pi/180
+  lon2 <- lon2 * pi/180
+  lat2 <- lat2 * pi/180
+  dLat <- lat2 - lat1
+  dLon <- lon1 - lon2
+  a <- sin(dLat/2) * sin(dLat/2) + cos(lat1) * cos(lat2) *
+    sin(dLon/2) * sin(dLon/2)
+  c <- 2 * atan2(sqrt(a), sqrt(1 - a))
+  d <- 6371 * c
+  return(d)
+}
+
+edge.dat <- dat %>%
+  # Create two new columns with the same ids
+  mutate(id1 = id, id2 = id) %>%
+  # expand into all combinations of names
+  expand(id1, id2) %>%
+  # Remove name1 equals to name2 2
+  filter(id1 != id2) %>%
+  # Merge the original data.frame for lon and lat in column name1
+  left_join(dat, by = c('id1' = 'id')) %>%
+  rename(lon1 = coordinate.lon, lat1 = coordinate.lat) %>%
+  # Merge the original data.frame for lon and lat in column name2
+  left_join(dat, by = c('id2' = 'id')) %>%
+  rename(lon2 = coordinate.lon, lat2 = coordinate.lat) %>%
+  # Calculate the distance
+  mutate(distance = sphericalDistance(lat1, lon1, lat2, lon2))
+
+# Create distance matrix.
+
+edge.dat <- subset(edge.dat, select = c(id1, id2, distance)) 
+
+# Compute log distance.
+
+edge.dat$log.dist <- log1p(edge.dat$distance) 
+
+# Create network object using iGraph.
+
+edge.net <- graph.data.frame(edge.dat, directed = T)
+
 
 
 # plotting
@@ -249,6 +307,5 @@ continuous_dat <- subset(actor_attributes, select = c("org_rank", "prod"))
 categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id","building_id"))
 write.table(continuous_dat, "2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 write.table(categorical_dat, "2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-
 
 

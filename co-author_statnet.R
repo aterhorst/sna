@@ -6,7 +6,7 @@ library(coda)
 
 # load igraph object saved as .rda file
 
-load("/2013/2013_co-author_net.rda")
+load("2016_co-author_net.rda")
 
 # convert into sna object
 
@@ -17,24 +17,35 @@ list.vertex.attributes(a) # check 1
 
 
 # ergm
-a.model <- ergm(a~edges+
-                  #gwdegree+
-                  triangles+
-                  cycle +
-                  kstar(2)+
-                  sociality("bu_id")+
-                  sociality("location_id")+
-                  nodematch("bu_id")+
-                  nodematch("location_id"),
-                control = control.ergm(init = coeff, 
-                                       MCMC.burnin=10000, 
-                                       MCMC.samplesize=1000, 
-                                       MCMC.interval=1000,
-                                       MCMLE.density.guard = 50,
-                                       MCMLE.maxit = 100)
-                
-                  )
 
+## set initial control parameters
+
+
+
+## first model run
+
+a.model <- ergm(a~edges+
+                  gwesp(0.25, fixed = T)+
+                  gwdegree(0.5, fixed = T)+
+                  absdiff("org_rank")+
+                  absdiff("prod")+
+                  nodematch("bu", diff = T)+
+                  nodematch("location_id"), 
+                  control = control.ergm(MCMLE.density.guard = 100))
+coeff <- coef(a.model)
+
+## subsequent model runs
+
+a.model <- ergm(a~edges+
+                  gwesp(0.25, fixed = T)+
+                  gwdegree(0.5, fixed = T)+
+                  absdiff("org_rank")+
+                  absdiff("prod")+
+                  nodematch("bu", diff = T)+
+                  nodematch("location_id"),
+                  control = control.ergm(init = coeff,
+                                         MCMLE.density.guard = 100,
+                                         MCMLE.maxit = 50))
 coeff <- coef(a.model)
 
 summary(a.model)

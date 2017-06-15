@@ -40,7 +40,7 @@ groups <- groups_now[which(groups_now$FullName %in% groups_old$name),]
 
 ## remove garbage columns from groups
 
-groups <- subset(groups, select = c("FullName","ManagerName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "RankHierarchy"))
+groups <- subset(groups, select = c("FullName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "WorkAreaCode", "RankHierarchy"))
 groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
 
 ## add organisational detail
@@ -80,7 +80,7 @@ man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
 # identify productivity stars
 
-prod1 <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
+prod1 <- filter(man, man$`Publisher Notification Date` >= "2014-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 prod2 <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
 
 rev_name <- function(string, pattern = ", ") {paste(rev(unlist(strsplit(string, pattern))), collapse = " ")} 
@@ -99,7 +99,7 @@ groups <- left_join(groups,prod3, by = "FullName")
 
 # extract date range(s) - need to repeat everything from here on for each date range.
 
-man <- filter(man, man$`Publisher Notification Date` >= "2013-01-01" & man$`Publisher Notification Date` <= "2013-12-31")
+man <- filter(man, man$`Publisher Notification Date` >= "2016-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 
 # create ragged edge dataframe
 
@@ -147,6 +147,7 @@ g <- graph.edgelist(links, directed=FALSE)
 buc <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
 bun <- factor(groups$Name[as.numeric(V(g)$name)])
 loc <- factor(groups$LocationCode[as.numeric(V(g)$name)])
+workplace <- factor(groups$WorkAreaCode[as.numeric(V(g)$name)])
 coauthor <- factor(groups$FullName[as.numeric(V(g)$name)])
 orgrank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
 pn <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
@@ -159,6 +160,7 @@ V(g)$employee_id <- as.character(pn) # person identifier
 V(g)$bu <- as.character(bun) # bu name
 V(g)$bu_id <- as.character(buc) # bu code
 V(g)$location_id <- as.character(loc) # place of work
+V(g)$building_id <- as.character(workplace) # building 
 V(g)$org_rank <- as.numeric(as.character(orgrank)) # level in hierarchy
 V(g)$prod <- as.numeric(as.character(prod)) # total publications 2013-16
 V(g)$degree <- degree(g)
@@ -181,10 +183,6 @@ ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
 metrics <- get.vertex.attribute(g)
 
-## homophily
-
-# work in progress. idea is to calculate heterogeneity (diversity).
-
 
 # plotting
 
@@ -199,20 +197,24 @@ bus <- factor(V(g)$bu_id)
 n <- max(unlist(as.integer(bus))) 
 gc() # garbage collection
 col.scale <- randomColor(n, hue = "random", luminosity = "bright") 
-#V(gc)$size <- V(gc)$prod / 10
-V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage)*10
+
+V(gc)$size <- V(gc)$prod/max(V(gc)$prod) * 5 # productivity stars
+V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 5 # relational stars
+V(gc)$size <- (V(gc)$evbrokerage/max(V(gc)$evbrokerage))*(V(gc)$prod/max(V(gc)$prod))*10 # super stars
+
 legend <- factor(V(gc)$bu_id)
-lo <- layout_with_kk(gc, niter = 200)
+
+lo <- layout_with_kk(gc)
 
 ## generate graph
 
-pdf("co-author_2013r.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016r.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = col.scale[bus], 
      vertex.label=NA, 
      vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "Relational Stars - 2013",cex.main=2)
+title(main = "Reltional Stars\n2016", cex.main=2)
 legend("topright",legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
@@ -225,11 +227,11 @@ dev.off() #close the device
 
 # export vertex attributes
 
-write.csv(metrics, "2013_vertex_attr.csv", row.names = F)
+write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
 
 # save as.RDA file
 
-save(g, file = "2013_co-author_net.rda")
+save(g, file = "2016_co-author_net.rda")
 
 # export as gml file to display in Gephi
 
@@ -239,14 +241,14 @@ write.graph(g, "2013_co-author.gml", "gml")
 # export to MPNet
 
 adjmatrix <- get.adjacency(g)
-write.matrix(adjmatrix, file = "2013_coauthor_adj_mpnet.txt")
+write.matrix(adjmatrix, file = "2016_coauthor_adj_mpnet.txt")
 
 actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
-continuous_dat <- subset(actor_attributes, select = "org_rank")
-categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id"))
-write.table(continuous_dat, "2013_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-write.table(categorical_dat, "2013_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+continuous_dat <- subset(actor_attributes, select = c("org_rank", "prod"))
+categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id","building_id"))
+write.table(continuous_dat, "2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical_dat, "2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 
 

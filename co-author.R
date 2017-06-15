@@ -13,6 +13,7 @@ library(stringr)
 library(purrr)
 library(randomcoloR)
 library(reshape)
+library(ggmap)
 library(MASS)
 library(Matrix)
 
@@ -38,13 +39,10 @@ groups_now <- full_join(groups_now,rank, by = "PersonnelNumber")
 
 groups <- groups_now[which(groups_now$FullName %in% groups_old$name),]
 
-## create gecode field
-
-groups$CountryPostCode <- with(groups, paste0("Australia postcode ", PostCode))
 
 ## remove garbage columns from groups
 
-groups <- subset(groups, select = c("FullName", "PersonnelNumber", "BusinessUnitCode", "LocationCode", "CountryPostCode", "WorkAreaCode", "RankHierarchy"))
+groups <- subset(groups, select = c("FullName", "PersonnelNumber", "BusinessUnitCode", "LocationCode","WorkAreaCode", "RankHierarchy"))
 groups$BusinessUnitCode <- as.integer(groups$BusinessUnitCode)
 
 ## add organisational detail
@@ -76,6 +74,9 @@ groups <- cbind(id = 1:nrow(groups), groups) # index rows
 groups$Name[groups$Name == "CSIRO ASTRONOMY & SPACE SCIENCE"] <- "ASTRONOMY & SPACE SCIENCE"
 groups$Name[groups$Name == "NATL COLLECTIONS & MARINE INFRASTRUCTURE"] <- "NATIONAL COLLECTIONS & MARINE INFRASTRUCTURE"
 
+## create gecode field
+
+groups$CountryPostCode <- with(groups, paste0(Country, " postcode ", PostCode))
 
 # import publication data
 
@@ -185,11 +186,11 @@ ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
 # Extract vertex attributes 
 
-metrics <- get.vertex.attribute(g)
+metrics <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
 
 # Get geographic coordinates.
 
-name.place <- metrics[,c(1,2,3,30)]
+name.place <- metrics[,c(1,2,8)]
 
 name.place$coordinate <- geocode(name.place$geocode, sensor = FALSE, output = "latlon", source = "google")
 

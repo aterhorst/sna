@@ -83,7 +83,7 @@ groups$CountryPostCode <- with(groups, paste0(Country, " postcode ", PostCode))
 man <- na.omit(read_excel("data/ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
 man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
-# identify productivity stars
+# identify productivity stars based on aggregated publications
 
 prod1 <- filter(man, man$`Publisher Notification Date` >= "2014-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 prod2 <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
@@ -96,17 +96,17 @@ prod2 <- as.data.frame(t(apply(prod2,1,function(x) gsub(" +"," ",x)))) # fix lea
 
 prod2 <- prod2[!is.na(prod2)]
 
-prod3 <- as.data.frame(table(prod2))
+prod3 <- as.data.frame(table(prod2)) # tabulate number of times author is named
 colnames(prod3)[colnames(prod3) == "prod2"] <- "FullName"
 prod3$FullName <- as.character(prod3$FullName)
-groups <- left_join(groups,prod3, by = "FullName")
+groups <- left_join(groups,prod3, by = "FullName") 
 
 
-# extract date range(s) - need to repeat everything from here on for each date range.
+# extract date range for network analysis 
 
 man <- filter(man, man$`Publisher Notification Date` >= "2016-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 
-# create ragged edge dataframe
+# create ragged-edge dataframe (authors per paper)
 
 aut <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
 
@@ -188,58 +188,31 @@ ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
 metrics <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
 
-# Get geographic coordinates.
+# export vertex attributes
 
-name.place <- metrics[,c(1,2,8)]
+write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
 
-name.place$coordinate <- geocode(name.place$geocode, sensor = FALSE, output = "latlon", source = "google")
+# save as.RDA file
 
-dat <- as.data.frame(as.list(name.place[,c(2,5)]))
+save(g, file = "2016_co-author_net.rda")
 
-# Following code courtesy of Bangyou Zheng:
+# export as gml file to display in Gephi
 
-sphericalDistance <- function (lat1, lon1, lat2, lon2)
-{
-  lon1 <- lon1 * pi/180
-  lat1 <- lat1 * pi/180
-  lon2 <- lon2 * pi/180
-  lat2 <- lat2 * pi/180
-  dLat <- lat2 - lat1
-  dLon <- lon1 - lon2
-  a <- sin(dLat/2) * sin(dLat/2) + cos(lat1) * cos(lat2) *
-    sin(dLon/2) * sin(dLon/2)
-  c <- 2 * atan2(sqrt(a), sqrt(1 - a))
-  d <- 6371 * c
-  return(d)
-}
+write.graph(g, "2013_co-author.gml", "gml")
 
-edge.dat <- dat %>%
-  # Create two new columns with the same ids
-  mutate(id1 = id, id2 = id) %>%
-  # expand into all combinations of names
-  expand(id1, id2) %>%
-  # Remove name1 equals to name2 2
-  filter(id1 != id2) %>%
-  # Merge the original data.frame for lon and lat in column name1
-  left_join(dat, by = c('id1' = 'id')) %>%
-  rename(lon1 = coordinate.lon, lat1 = coordinate.lat) %>%
-  # Merge the original data.frame for lon and lat in column name2
-  left_join(dat, by = c('id2' = 'id')) %>%
-  rename(lon2 = coordinate.lon, lat2 = coordinate.lat) %>%
-  # Calculate the distance
-  mutate(distance = sphericalDistance(lat1, lon1, lat2, lon2))
 
-# Create distance matrix.
+# export to MPNet
 
-edge.dat <- subset(edge.dat, select = c(id1, id2, distance)) 
+adjmatrix <- get.adjacency(g)
+write.matrix(adjmatrix, file = "2016_coauthor_adj_mpnet.txt")
 
-# Compute log distance.
+actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
-edge.dat$log.dist <- log1p(edge.dat$distance) 
+continuous_dat <- subset(actor_attributes, select = c("org_rank", "prod"))
+categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id","building_id"))
+write.table(continuous_dat, "2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical_dat, "2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
-# Create network object using iGraph.
-
-edge.net <- graph.data.frame(edge.dat, directed = T)
 
 
 
@@ -284,29 +257,5 @@ text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(
 dev.off() #close the device
 
 
-# export vertex attributes
-
-write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
-
-# save as.RDA file
-
-save(g, file = "2016_co-author_net.rda")
-
-# export as gml file to display in Gephi
-
-write.graph(g, "2013_co-author.gml", "gml")
-
-
-# export to MPNet
-
-adjmatrix <- get.adjacency(g)
-write.matrix(adjmatrix, file = "2016_coauthor_adj_mpnet.txt")
-
-actor_attributes <- as.data.frame(get.vertex.attribute(g))
-
-continuous_dat <- subset(actor_attributes, select = c("org_rank", "prod"))
-categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id","building_id"))
-write.table(continuous_dat, "2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-write.table(categorical_dat, "2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 

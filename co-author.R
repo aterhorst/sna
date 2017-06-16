@@ -192,7 +192,7 @@ metrics <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
 
 write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
 
-# save as.RDA file
+# save network as.RDA file
 
 save(g, file = "2016_co-author_net.rda")
 
@@ -225,29 +225,27 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 ## configure display parameters
 
-bus <- factor(V(g)$bu_id) 
-n <- max(unlist(as.integer(bus))) 
-gc() # garbage collection
-col.scale <- randomColor(n, hue = "random", luminosity = "bright") 
 
 V(gc)$size <- V(gc)$prod/max(V(gc)$prod) * 5 # productivity stars
 V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 5 # relational stars
 V(gc)$size <- (V(gc)$evbrokerage/max(V(gc)$evbrokerage))*(V(gc)$prod/max(V(gc)$prod))*10 # super stars
 
-legend <- factor(V(gc)$bu_id)
+bu <- factor(V(gc)$bu_id)
+cols <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
+          "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99") # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11
 
 lo <- layout_with_kk(gc)
 
 ## generate graph
 
-pdf("co-author_2016r.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016p.pdf",width=15,height=15) #call the pdf writer
 
-plot(gc, vertex.color = col.scale[bus], 
+plot(gc, vertex.color = cols[as.numeric(bu)], 
      vertex.label=NA, 
      vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "Reltional Stars\n2016", cex.main=2)
-legend("topright",legend=levels(legend),col=col.scale[bus], pch = 16, cex=0.8, title = "Business Unit", box.lty=0)
+title(main = "Productivity Stars\n2016", cex.main=2)
+legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.975, labels = paste0('edges = ', ecount(g)), adj = c(0,0), cex = 0.8)

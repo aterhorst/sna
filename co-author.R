@@ -227,24 +227,30 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 
 V(gc)$size <- V(gc)$prod/max(V(gc)$prod) * 5 # productivity stars
-V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 5 # relational stars
-V(gc)$size <- (V(gc)$evbrokerage/max(V(gc)$evbrokerage))*(V(gc)$prod/max(V(gc)$prod))*10 # super stars
+V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 10 # relational stars
+
+
+V(gc)$br <- V(gc)$evbrokerage/max(V(gc)$evbrokerage)
+V(gc)$pr <- V(gc)$prod/max(V(gc)$prod)
+
+V(gc)$size <- (V(gc)$br*V(gc)$pr/(V(gc)$br*V(gc)$pr+(1-V(gc)$br)*(1-V(gc)$pr)))*5 # super stars
 
 bu <- factor(V(gc)$bu_id)
 cols <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
           "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99") # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11
 
 lo <- layout_with_kk(gc)
+lo <- layout_with_graphopt(gc, spring.length = 2,spring.constant = 4)
 
 ## generate graph
 
-pdf("co-author_2016p.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016c.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = cols[as.numeric(bu)], 
      vertex.label=NA, 
      vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "Productivity Stars\n2016", cex.main=2)
+title(main = "Relational Stars\n2016", cex.main=2)
 legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)

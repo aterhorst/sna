@@ -25,7 +25,7 @@ library(RColorBrewer)
 
 # Set working directory.
 
-# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
+setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data") # MacBook
 setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data") # work PC
 
@@ -35,7 +35,7 @@ node.summary.all <- read_excel("node_summary_all.xlsx", sheet = 1)
 node.summary.all$location <- with(node.summary.all, paste0(country," postcode ", post.code))
 
 name.place <- node.summary.all[,c(1,2,3,30)]
-name.place <- subset(name.place, name.place$case_no == 3) # subset specific cases
+name.place <- subset(name.place, name.place$case_no == 1) # subset specific cases
 
 # Get geographic coordinates.
 
@@ -87,6 +87,7 @@ edge.dat$log.dist <- log1p(edge.dat$distance)
 # Create network object using iGraph.
 
 edge.net <- graph.data.frame(edge.dat, directed = T)
+save(edge.net,file = "co-author_distance.rda")
 
 # Generate adjacency matrix using iGraph.
 
@@ -102,6 +103,7 @@ write.matrix(edge.matrix.export, file = "log.spherical.distance.txt", sep = "\t"
 # With ggplot2 ...(beautiful)
 
 edge.matrix.km <- get.adjacency(edge.net, sparse = F, attr = "distance", type = "upper", names = T) 
+
 melted <- melt(edge.matrix.km)
 
 

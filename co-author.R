@@ -5,6 +5,14 @@
 #                                               #
 #################################################
 
+# library(readxl)
+# library(igraph)
+# library(plyr)
+# library(dplyr)
+# library(tidyr)
+# 
+# library(stringr)
+# library(purrr)
 
 setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 
@@ -21,12 +29,15 @@ groups_old <- read.csv("data/people_2013.csv", as.is = c(TRUE,FALSE), header = T
 
 require(plyr)
 require(dplyr)
+require(igraph)
 
 reportto <- as.data.frame(subset(groups_now, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
 g <- graph_from_data_frame(reportto)
 rank <- data.frame(PersonnelNumber = names(shortest.paths(g)[,'00022937']), RankHierarchy = shortest.paths(g)[,'00022937']+1) # 00022937 is CEO
 rank$PersonnelNumber <- as.character(rank$PersonnelNumber)
 groups_now <- full_join(groups_now,rank, by = "PersonnelNumber")
+
+detach(package:igraph, unload=TRUE)
 
 ## extract cohort that has survived since 2013
 
@@ -77,6 +88,9 @@ man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`) 
 
 # identify productivity stars based on aggregated publications
 
+require(stringr)
+require(purrr)
+
 prod1 <- filter(man, man$`Publisher Notification Date` >= "2014-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 prod2 <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
 
@@ -97,7 +111,9 @@ groups <- left_join(groups,prod3, by = "FullName")
 
 require(anonymizer)
 
-groups$BusinessUnitHash <- hash(groups$BusinessUnitCode, .algo = "crc32")
+groups$bu_code_hash <- hash(groups$BusinessUnitCode, .algo = "crc32")
+groups$personnel_no_hash <- hash(groups$PersonnelNumber, .algo = "crc32")
+groups$Freq <- groups$Freq + 7
 
 # extract date range for coauthor network analysis
 
@@ -146,9 +162,9 @@ g <- graph.edgelist(links, directed=FALSE)
 
 ## generate attribute info
 
-bu_id <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
-bu_hash <- factor(groups$BusinessUnitHash[as.numeric(V(g)$name)])
-bu_name <- factor(groups$Name[as.numeric(V(g)$name)])
+bu_code <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
+bu_code_hash <- factor(groups$bu_code_hash[as.numeric(V(g)$name)])
+personnel_no_hash <- factor(groups$personnel_no_hash[as.numeric(V(g)$name)])
 location_id <- factor(groups$LocationCode[as.numeric(V(g)$name)])
 building_id <- factor(groups$WorkAreaCode[as.numeric(V(g)$name)])
 author <- factor(groups$FullName[as.numeric(V(g)$name)])
@@ -159,24 +175,54 @@ postcode <- factor(groups$CountryPostCode[as.numeric(V(g)$name)])
 
 ## assign attributes to vertices
 
-V(g)$employee <- as.character(author) # name of coauthor
-V(g)$personnel_no <- as.character(personnel_no) # person identifier
-V(g)$bu_name <- as.character(bu_name) # bu name
-V(g)$bu_id <- as.character(bu_id) # bu code
-V(g)$bu_hash <- as.character(bu_hash) # bu hash code
+V(g)$author <- as.character(author) # name of coauthor
+V(g)$personnel_no <- as.character(personnel_no) # personnel number
+V(g)$personnel_no_hash <- as.character(personnel_no_hash) # personnel number hashed
+V(g)$bu_code <- as.character(bu_code) # bu code
+V(g)$bu_code_hash <- as.character(bu_code_hash)# bu_code hashed
 V(g)$location_id <- as.character(location_id) # place of work
 V(g)$building_id <- as.character(building_id) # building 
 V(g)$postcode <- as.character(postcode)
 V(g)$org_rank <- as.numeric(as.character(org_rank)) # level in hierarchy
-V(g)$coauthorships <- as.numeric(as.character(prod)) # total publications 2014-16
-V(g)$degree <- degree(g)
-V(g)$closeness <- closeness(g)
-V(g)$betweenness <- betweenness(g)
-V(g)$evcent <- evcent(g)$vector
+V(g)$coauthorships <- as.numeric(as.character(coauthorships)) # total co-authorships 2014-16
+V(g)$degree <- degree(g) # degree centrality
+V(g)$closeness <- closeness(g) # closeness centrality
+V(g)$betweenness <- betweenness(g) # betweenness centrality
+V(g)$evcent <- evcent(g)$vector # eignevector centrality
 V(g)$constraint <- constraint(g) # burt's constraint measure
 V(g)$evbrokerage <- ifelse(betweenness(g) != 0, 
                            ((betweenness(g)*2)+(vcount(g)-1))/degree(g), 
                            betweenness(g)) # everett-valente brokerage (undirected network)
+
+require(data.table)
+
+V(g)$br <- V(g)$evbrokerage/max(V(g)$evbrokerage) # normalise
+V(g)$pr <- V(g)$coauthorships/max(V(g)$coauthorships) # normalise
+
+
+
+V(g)$super <- V(g)$br*V(g)$pr/(V(g)$br*V(g)$pr+(1-V(g)$br)*(1-V(g)$pr))
+
+
+
+# Extract vertex attributes 
+
+actor_attributes <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
+
+actor_attributes <- actor_attributes[,c(4,6,10:20)]
+
+# super <- as.data.table(actor_attributes)
+# super[,rrank:=rank(-br,ties.method="first"),]
+# super[,prank:=rank(-coauthorships,ties.method="first"),]
+# super$superr <- super$rrank + super$prank
+# super[,srank:=rank(-superr,ties.method="first"),]
+# V(g)$super <- sqrt(super$lrank)
+
+
+
+# export vertex attributes
+
+write.csv(actor_attributes, "2016/2016_vertex_attr.csv", row.names = F)
 
 # geocode vertices (with help from Alex Whan)
 
@@ -188,7 +234,6 @@ V(g)$coordinate <- lapply(split(postcode_df, 1:nrow(postcode_df)), unlist)
 # compute edge distance (with help from Alex Whan)
 
 require(geosphere)
-require(purrr)
 
 el <- get.edgelist(g, names=FALSE)
 E(g)$distance <- round(unlist(map2(V(g)$coordinate[el[,1]], V(g)$coordinate[el[,2]], distHaversine))/1000, 0) # distance in km
@@ -199,13 +244,7 @@ E(g)$log_distance <- log1p(E(g)$distance)
 # ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
 # ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
 
-# Extract vertex attributes 
 
-actor_attributes <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
-
-# export vertex attributes
-
-write.csv(actor_attributes, "2016/2016_vertex_attr.csv", row.names = F)
 
 # save network as.RDA file
 
@@ -247,12 +286,9 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 ## set vertex size
 
-V(gc)$br <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) # normalise
-V(gc)$pr <- V(gc)$coauthorships/max(V(gc)$coauthorships) # normalise
-
 V(gc)$size <- V(gc)$pr * 5 # productivity stars
 V(gc)$size <- V(gc)$br * 5 # relational stars
-V(gc)$size <- (V(gc)$br*V(gc)$pr/(V(gc)$br*V(gc)$pr+(1-V(gc)$br)*(1-V(gc)$pr))) * 5 # super stars
+V(gc)$size <- V(gc)$super * 5 # super stars
 
 ## set edge thickness
 
@@ -260,7 +296,7 @@ E(gc)$thickness <- 1 + E(gc)$log_distance/5
 
 ## set node colours = bu_id
 
-bu <- factor(V(gc)$bu_hash)
+bu <- factor(V(gc)$bu_code_hash)
 cols <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
           "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99") # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11
 
@@ -270,11 +306,13 @@ lo <- layout_with_kk(gc)
 
 ## generate graph
 
-pdf("co-author_2016s.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016ssp.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = cols[as.numeric(bu)], 
      vertex.label = NA, 
-     vertex.size = V(gc)$size, edge.width = E(gc)$thickness, layout= lo)
+     vertex.size = V(gc)$size, 
+     edge.width = E(gc)$thickness, 
+     layout= lo)
 
 title(main = "Super Stars\n2016", cex.main=2)
 legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Business Unit", box.lty=0)
@@ -282,6 +320,6 @@ legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Busine
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.975, labels = paste0('edges = ', ecount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.95, labels = paste0('density = ', round(edge_density(g),4)), adj = c(0,0), cex = 0.8)
-text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(g,V(g)$bu_id),3)), adj = c(0,0), cex = 0.8)
+text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(g,V(g)$bu_code),3)), adj = c(0,0), cex = 0.8)
 
 dev.off() #close the device

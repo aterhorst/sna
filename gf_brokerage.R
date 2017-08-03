@@ -2,20 +2,9 @@
 #                                                   #
 #               R script to perform                 #
 #        Gould-Fernandez brokerage analysis         #
-#               Version 2016-10-01                  #
+#               Version 2017-08-03                  #
 #                                                   #
 #####################################################
-
-# Load requisite libraries.
-
-library(network)
-library(sna)
-library(intergraph) 
-library(devtools)
-library(ggplot2)
-library(dplyr)
-library(reshape)
-library(ggthemes)
 
 
 # Set working directory.
@@ -28,8 +17,8 @@ setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/case 1")
 
 ## Case 2
 
-setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # MacBook
-# setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # Home PC
+# setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # MacBook
+setwd("d:/Andrew/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # Home PC
 # setwd("c:/Users/ter053/ownCloud/Innovation Network Analysis/Quantitative Data/Case 2") # work PC
 
 ## Case 3
@@ -42,12 +31,20 @@ setwd("~/ownCloud/Innovation Network Analysis/Quantitative Data/Case 3") # MacBo
 
 # Load and convert igraph objects saved as .rda files.
 
+require(igraph)
+
 graph.list.1 <- c("knowledge.provider.net", "tacit.knowledge.net", "explicit.knowledge.net", 
                 "idea.contributor.net", "idea.transformer.net", "affect.based.trust.net", 
                 "cognition.based.trust.net", "prior.relationship.net", "report.to.net")
 
 for (g in graph.list.1){
   eval(parse(text = paste0('load("', g,'.rda")')))
+  eval(parse(text = paste0(g, ' <- delete.vertices(', g,', is.na(V(',g,')$age) | is.na(V(',g,')$work.location))')))
+}
+
+require(intergraph)
+
+for (g in graph.list.1){
   eval(parse(text = paste0(g,'.sna <- asNetwork(', g,')')))
 }
 
@@ -63,6 +60,9 @@ for (g in graph.list.2){
 
 # Perform G-F analysis.
 
+require(network)
+require(sna)
+
 graph.list.3 <- c("explicit.knowledge.net.sna", "tacit.knowledge.net.sna", "idea.contributor.net.sna")
 
 for (g in graph.list.3){
@@ -70,8 +70,9 @@ for (g in graph.list.3){
 }
 
 
+# Synthesize/combine data.
 
-# Synthesize data.
+require(devtools)
 
 source_url("https://gist.githubusercontent.com/dfalster/5589956/raw/5f9cb9cba709442a372c2e7621679a5dd9de1e28/addNewData.R", sha1 = NULL)
 allowedVars <- c("employer")
@@ -96,10 +97,14 @@ rownames(ig) <- NULL
 ig <- addNewData("lookupTable.csv", ig, allowedVars) # add descriptive fields
 
 gf <- rbind(ekp,tkp,ig) # summary of gould-fernandez
-
 write.csv(gf, file = "gould-fernandez.csv", row.names = FALSE)
 
 # Plot graphs.
+
+require(ggplot2)
+require(dplyr)
+require(reshape)
+require(ggthemes)
 
 melted <- melt(gf, id.vars = c("name","employer","net"))
 melted$net <- factor(melted$net, levels = c("Explicit Knowledge Provider", "Tacit Knowledge Provider", "Idea Contributor"))

@@ -14,7 +14,7 @@
 # library(stringr)
 # library(purrr)
 
-setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
+setwd("~/ownCloud/Co-author Network")
 
 # read in CSIRO people data
 
@@ -84,6 +84,7 @@ groups$CountryPostCode <- with(groups, paste0(Country, " postcode ", PostCode))
 # import publication data
 
 man <- na.omit(read_excel("data/ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
+man <- subset(man, man$`Publication Type` != "Report") # limit analysis to conference, journals and book chapters
 man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`) # set column type = date
 
 # identify productivity stars based on aggregated publications
@@ -107,13 +108,13 @@ colnames(prod3)[colnames(prod3) == "prod2"] <- "FullName"
 prod3$FullName <- as.character(prod3$FullName)
 groups <- left_join(groups,prod3, by = "FullName") 
 
-# create bogus bu names (for de-identification purposes)
+# create bogus bu and author names (for de-identification purposes)
 
 require(anonymizer)
 
 groups$bu_code_hash <- hash(groups$BusinessUnitCode, .algo = "crc32")
 groups$personnel_no_hash <- hash(groups$PersonnelNumber, .algo = "crc32")
-groups$Freq <- groups$Freq + 7
+groups$Freq <- groups$Freq + 7 # just to thwart any attempt at re-identification
 
 # extract date range for coauthor network analysis
 
@@ -194,31 +195,32 @@ V(g)$evbrokerage <- ifelse(betweenness(g) != 0,
                            ((betweenness(g)*2)+(vcount(g)-1))/degree(g), 
                            betweenness(g)) # everett-valente brokerage (undirected network)
 
-require(data.table)
-
 V(g)$br <- V(g)$evbrokerage/max(V(g)$evbrokerage) # normalise
 V(g)$pr <- V(g)$coauthorships/max(V(g)$coauthorships) # normalise
-
-
-
 V(g)$super <- V(g)$br*V(g)$pr/(V(g)$br*V(g)$pr+(1-V(g)$br)*(1-V(g)$pr))
 
-
-
-# Extract vertex attributes 
+# extract vertex attributes 
 
 actor_attributes <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
 
-actor_attributes <- actor_attributes[,c(4,6,10:20)]
+# rank relational and productivity stars
 
-# super <- as.data.table(actor_attributes)
-# super[,rrank:=rank(-br,ties.method="first"),]
-# super[,prank:=rank(-coauthorships,ties.method="first"),]
-# super$superr <- super$rrank + super$prank
-# super[,srank:=rank(-superr,ties.method="first"),]
-# V(g)$super <- sqrt(super$lrank)
+require(data.table)
 
+super <- as.data.table(actor_attributes)
+super[,rrank:=rank(-br,ties.method="first"),]
+super[,prank:=rank(-coauthorships,ties.method="first"),]
+super$combined <- super$prank + super$rrank
+super[,srank:=rank(-combined,ties.method="first"),]
 
+# outlierReplace = function(dataframe, cols, rows, newValue = NA) {
+#   if (any(rows)) {
+#     set(dataframe, rows, cols, newValue)
+#   }
+# }
+# 
+# outlierReplace(actor_attributes, "evbrokerage", which(log1p(actor_attributes$evbrokerage) == 0), NA)
+# V(g)$evbrokerage_non_zero <- actor_attributes$evbrokerage
 
 # export vertex attributes
 
@@ -239,12 +241,12 @@ el <- get.edgelist(g, names=FALSE)
 E(g)$distance <- round(unlist(map2(V(g)$coordinate[el[,1]], V(g)$coordinate[el[,2]], distHaversine))/1000, 0) # distance in km
 E(g)$log_distance <- log1p(E(g)$distance)
 
+g <- delete_vertex_attr(g, "coordinate")
+
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
 # ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
 # ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
-
-
 
 # save network as.RDA file
 
@@ -306,7 +308,7 @@ lo <- layout_with_kk(gc)
 
 ## generate graph
 
-pdf("co-author_2016ssp.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016s.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = cols[as.numeric(bu)], 
      vertex.label = NA, 
@@ -315,7 +317,7 @@ plot(gc, vertex.color = cols[as.numeric(bu)],
      layout= lo)
 
 title(main = "Super Stars\n2016", cex.main=2)
-legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Business Unit", box.lty=0)
+legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.5, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.975, labels = paste0('edges = ', ecount(g)), adj = c(0,0), cex = 0.8)

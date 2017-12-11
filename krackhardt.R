@@ -63,7 +63,44 @@ dev.print(device = png, width = 2000, height = 800, units = "px", "~/ownCloud/Th
 
 # Export data for analysis in MPNet
 
+## adjacency matrices
 
+require(MASS)
+
+reports_adj <- get.adjacency(reports_grp, type = "both", names = FALSE)
+friends_adj <- get.adjacency(friends_grph, type = "both", names = FALSE)
+advice_adj <- get.adjacency(advice_grph, type = "both", names = FALSE)
+
+write.matrix(reports_adj, file = "~/ownCloud/Krackhardt/MPNET/reports_to_net.txt")
+write.matrix(friends_adj, file = "~/ownCloud/Krackhardt/MPNET/friends_with_net.txt")
+write.matrix(advice_adj, file = "~/ownCloud/Krackhardt/MPNET/seeks_advice_from_net.txt")
+
+## create dyadic covariate file.
+
+fn <- "~/ownCloud/Krackhardt/MPNET/dyadic_covariates.txt" 
+cat("", file = fn) # create empty file
+
+reports_df <- as.data.frame(as.matrix(reports_adj))
+friends_df <- as.data.frame(as.matrix(friends_adj))
+advice_df <- as.data.frame(as.matrix(advice_adj))
+
+cat("reports_to\n", file = fn, append = TRUE)
+write.table(reports_df, fn, append = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
+
+cat("friends_with\n", file = fn, append = TRUE)
+write.table(friends_df, fn, append = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
+
+cat("seeks_advice_from\n", file = fn, append = TRUE)
+write.table(advice_df, fn, append = TRUE, sep = "\t", row.names = FALSE, col.names = FALSE)
+
+
+## attribute tables
+
+continuous.data <- subset(attributes, select = c(AGE,TENURE,LEVEL)) # select columns with continuous data
+categorical.data <- subset(attributes, select = DEPT) # select columns with categorical data
+
+write.table(continuous.data, "~/ownCloud/Krackhardt/MPNET/continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical.data, "~/ownCloud/Krackhardt/MPNET/categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
 
 
 

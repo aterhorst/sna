@@ -169,7 +169,7 @@ V(g)$location_id <- as.character(loc) # place of work
 V(g)$building_id <- as.character(workplace) # building 
 V(g)$geocode <- as.character(pc) # geocode variable
 V(g)$org_rank <- as.numeric(as.character(orgrank)) # level in hierarchy
-V(g)$prod <- as.numeric(as.character(prod)) # total publications 2013-16
+V(g)$prod <- as.numeric(as.character(prod)) # total co-authorships 2014-16
 V(g)$degree <- degree(g)
 V(g)$closeness <- closeness(g)
 V(g)$betweenness <- betweenness(g)
@@ -177,7 +177,7 @@ V(g)$evcent <- evcent(g)$vector
 V(g)$constraint <- constraint(g) # burt's constraint measure
 V(g)$evbrokerage <- ifelse(betweenness(g) != 0, 
                            ((betweenness(g)*2)+(vcount(g)-1))/degree(g), 
-                           betweenness(g)) # everett-valente brokerage
+                           betweenness(g)) # everett-valente brokerage (for undirected networks)
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
@@ -230,10 +230,10 @@ V(gc)$size <- V(gc)$prod/max(V(gc)$prod) * 5 # productivity stars
 V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 10 # relational stars
 
 
-V(gc)$br <- V(gc)$evbrokerage/max(V(gc)$evbrokerage)
-V(gc)$pr <- V(gc)$prod/max(V(gc)$prod)
+V(gc)$br <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) # normalise brokerage
+V(gc)$pr <- V(gc)$prod/max(V(gc)$prod) # normalise productivity
 
-V(gc)$size <- (V(gc)$br*V(gc)$pr/(V(gc)$br*V(gc)$pr+(1-V(gc)$br)*(1-V(gc)$pr)))*5 # super stars
+V(gc)$size <- V(gc)$br*V(gc)$pr/((V(gc)$br*V(gc)$pr)+(1-V(gc)$br)*(1-V(gc)$pr))*5 # super stars
 
 bu <- factor(V(gc)$bu_id)
 cols <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",

@@ -1,35 +1,33 @@
 #################################################
 #                                               #
 #     R script to create co-author networks     #
-#             Version 2017-06-23                #
+#             Version 2017-06-09                #
 #                                               #
 #################################################
 
-# library(readxl)
-# library(igraph)
-# library(plyr)
-# library(dplyr)
-# library(tidyr)
-# 
-# library(stringr)
-# library(purrr)
+library(readxl)
+library(igraph)
+library(plyr)
+library(dplyr)
+library(stringr)
+library(purrr)
+library(randomcoloR)
+library(reshape)
+library(ggmap)
+library(MASS)
+library(Matrix)
 
-setwd("~/ownCloud/Co-author Network")
+
+setwd("/OSM/MEL/DPS_OI_Network/work/ownCloud/Co-author Network")
 
 # read in CSIRO people data
 
 ## people info
 
-require(readxl)
-
 groups_now <- read_excel("data/people_places.xlsx") # extracted from PeopleServ.csiro.au
 groups_old <- read.csv("data/people_2013.csv", as.is = c(TRUE,FALSE), header = TRUE)
 
 ## compute level in current hierachy
-
-require(plyr)
-require(dplyr)
-require(igraph)
 
 reportto <- as.data.frame(subset(groups_now, select = c("ManagerPersonnelNumber", "PersonnelNumber"))) # report to dyads
 g <- graph_from_data_frame(reportto)
@@ -37,11 +35,10 @@ rank <- data.frame(PersonnelNumber = names(shortest.paths(g)[,'00022937']), Rank
 rank$PersonnelNumber <- as.character(rank$PersonnelNumber)
 groups_now <- full_join(groups_now,rank, by = "PersonnelNumber")
 
-detach(package:igraph, unload=TRUE)
-
 ## extract cohort that has survived since 2013
 
 groups <- groups_now[which(groups_now$FullName %in% groups_old$name),]
+
 
 ## remove garbage columns from groups
 
@@ -84,13 +81,9 @@ groups$CountryPostCode <- with(groups, paste0(Country, " postcode ", PostCode))
 # import publication data
 
 man <- na.omit(read_excel("data/ePublish Manuscripts.xls")) # extracted from ePublish.csiro.au
-man <- subset(man, man$`Publication Type` != "Report") # limit analysis to conference, journals and book chapters
-man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`) # set column type = date
+man$`Publisher Notification Date` <- as.Date(man$`Publisher Notification Date`)
 
 # identify productivity stars based on aggregated publications
-
-require(stringr)
-require(purrr)
 
 prod1 <- filter(man, man$`Publisher Notification Date` >= "2014-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 prod2 <- str_split_fixed(man$Author, ";", n = 160) # max number of co-authors
@@ -103,20 +96,13 @@ prod2 <- as.data.frame(t(apply(prod2,1,function(x) gsub(" +"," ",x)))) # fix lea
 
 prod2 <- prod2[!is.na(prod2)]
 
-prod3 <- as.data.frame(table(prod2)) # tabulate number of times author is referenced (number of co-authorships)
+prod3 <- as.data.frame(table(prod2)) # tabulate number of times author is named
 colnames(prod3)[colnames(prod3) == "prod2"] <- "FullName"
 prod3$FullName <- as.character(prod3$FullName)
 groups <- left_join(groups,prod3, by = "FullName") 
 
-# create bogus bu and author names (for de-identification purposes)
 
-require(anonymizer)
-
-groups$bu_code_hash <- hash(groups$BusinessUnitCode, .algo = "crc32")
-groups$personnel_no_hash <- hash(groups$PersonnelNumber, .algo = "crc32")
-groups$Freq <- groups$Freq + 7 # just to thwart any attempt at re-identification
-
-# extract date range for coauthor network analysis
+# extract date range for network analysis 
 
 man <- filter(man, man$`Publisher Notification Date` >= "2016-01-01" & man$`Publisher Notification Date` <= "2016-12-31")
 
@@ -135,9 +121,9 @@ aut <- as.data.frame(t(apply(aut,1,function(x) gsub(" +"," ",x)))) # fix leading
 
 aut <- as.data.frame(aut[,1:20])
 
-# create dyads (thanks to Alec Stephenson)
+# create dyads
 
-## match authors to groups 
+## match authors to groups (thanks to Alec Stephenson)
 
 nauthors <- t(apply(aut, 1, function(x) match(x, groups$FullName)))
 
@@ -156,126 +142,79 @@ links <- links[order(links[,1],links[,2]),]  # order dyads according to increasi
 links <- links[!duplicated(links),] # take out duplicate dyads (co-authors with more than one paper)
 links <- matrix(as.character(links), ncol=2) # convert dyads to edge matrix
 
-## undirected graph generated from edge matrix
+# undirected graph generated from edge matrix
 
 require(igraph)
 g <- graph.edgelist(links, directed=FALSE) 
 
-## generate attribute info
+# generate attribute info
 
-bu_code <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
-bu_code_hash <- factor(groups$bu_code_hash[as.numeric(V(g)$name)])
-personnel_no_hash <- factor(groups$personnel_no_hash[as.numeric(V(g)$name)])
-location_id <- factor(groups$LocationCode[as.numeric(V(g)$name)])
-building_id <- factor(groups$WorkAreaCode[as.numeric(V(g)$name)])
-author <- factor(groups$FullName[as.numeric(V(g)$name)])
-org_rank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
-personnel_no <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
-coauthorships <- factor(groups$Freq[as.numeric(V(g)$name)])
-postcode <- factor(groups$CountryPostCode[as.numeric(V(g)$name)])
+buc <- factor(groups$BusinessUnitCode[as.numeric(V(g)$name)])
+bun <- factor(groups$Name[as.numeric(V(g)$name)])
+loc <- factor(groups$LocationCode[as.numeric(V(g)$name)])
+workplace <- factor(groups$WorkAreaCode[as.numeric(V(g)$name)])
+coauthor <- factor(groups$FullName[as.numeric(V(g)$name)])
+orgrank <- factor(groups$RankHierarchy[as.numeric(V(g)$name)])
+pn <- factor(groups$PersonnelNumber[as.numeric(V(g)$name)])
+prod <- factor(groups$Freq[as.numeric(V(g)$name)])
+pc <- factor(groups$CountryPostCode[as.numeric(V(g)$name)])
 
-## assign attributes to vertices
+# assign attributes to vertices
 
-V(g)$author <- as.character(author) # name of coauthor
-V(g)$personnel_no <- as.character(personnel_no) # personnel number
-V(g)$personnel_no_hash <- as.character(personnel_no_hash) # personnel number hashed
-V(g)$bu_code <- as.character(bu_code) # bu code
-V(g)$bu_code_hash <- as.character(bu_code_hash)# bu_code hashed
-V(g)$location_id <- as.character(location_id) # place of work
-V(g)$building_id <- as.character(building_id) # building 
-V(g)$postcode <- as.character(postcode)
-V(g)$org_rank <- as.numeric(as.character(org_rank)) # level in hierarchy
-V(g)$coauthorships <- as.numeric(as.character(coauthorships)) # total co-authorships 2014-16
-V(g)$degree <- degree(g) # degree centrality
-V(g)$closeness <- closeness(g) # closeness centrality
-V(g)$betweenness <- betweenness(g) # betweenness centrality
-V(g)$evcent <- evcent(g)$vector # eignevector centrality
+V(g)$employee <- as.character(coauthor) # name of co-author
+V(g)$employee_id <- as.character(pn) # person identifier
+V(g)$bu <- as.character(bun) # bu name
+V(g)$bu_id <- as.character(buc) # bu code
+V(g)$location_id <- as.character(loc) # place of work
+V(g)$building_id <- as.character(workplace) # building 
+V(g)$geocode <- as.character(pc) # geocode variable
+V(g)$org_rank <- as.numeric(as.character(orgrank)) # level in hierarchy
+V(g)$prod <- as.numeric(as.character(prod)) # total co-authorships 2014-16
+V(g)$degree <- degree(g)
+V(g)$closeness <- closeness(g)
+V(g)$betweenness <- betweenness(g)
+V(g)$evcent <- evcent(g)$vector
 V(g)$constraint <- constraint(g) # burt's constraint measure
 V(g)$evbrokerage <- ifelse(betweenness(g) != 0, 
                            ((betweenness(g)*2)+(vcount(g)-1))/degree(g), 
-                           betweenness(g)) # everett-valente brokerage (undirected network)
-
-V(g)$br <- V(g)$evbrokerage/max(V(g)$evbrokerage) # normalise
-V(g)$pr <- V(g)$coauthorships/max(V(g)$coauthorships) # normalise
-V(g)$super <- V(g)$br*V(g)$pr/(V(g)$br*V(g)$pr+(1-V(g)$br)*(1-V(g)$pr))
-
-# extract vertex attributes 
-
-actor_attributes <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
-
-# rank relational and productivity stars
-
-require(data.table)
-
-super <- as.data.table(actor_attributes)
-super[,rrank:=rank(-br,ties.method="first"),]
-super[,prank:=rank(-coauthorships,ties.method="first"),]
-super$combined <- super$prank + super$rrank
-super[,srank:=rank(-combined,ties.method="first"),]
-
-# outlierReplace = function(dataframe, cols, rows, newValue = NA) {
-#   if (any(rows)) {
-#     set(dataframe, rows, cols, newValue)
-#   }
-# }
-# 
-# outlierReplace(actor_attributes, "evbrokerage", which(log1p(actor_attributes$evbrokerage) == 0), NA)
-# V(g)$evbrokerage_non_zero <- actor_attributes$evbrokerage
-
-# export vertex attributes
-
-write.csv(actor_attributes, "2016/2016_vertex_attr.csv", row.names = F)
-
-# geocode vertices (with help from Alex Whan)
-
-require(ggmap)
-
-postcode_df <- geocode(V(g)$postcode, sensor = FALSE, output = "latlon", source = "google")
-V(g)$coordinate <- lapply(split(postcode_df, 1:nrow(postcode_df)), unlist)
-
-# compute edge distance (with help from Alex Whan)
-
-require(geosphere)
-
-el <- get.edgelist(g, names=FALSE)
-E(g)$distance <- round(unlist(map2(V(g)$coordinate[el[,1]], V(g)$coordinate[el[,2]], distHaversine))/1000, 0) # distance in km
-E(g)$log_distance <- log1p(E(g)$distance)
-
-g <- delete_vertex_attr(g, "coordinate")
+                           betweenness(g)) # everett-valente brokerage (for undirected networks)
 
 # sanity check (check aut and nauthor to see things make sense with what igraph reports below)
 
-# ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
-# ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
+ego(g,1,nodes = V(g)$author == "Stuart Day", "all") # see immediate alters connected to ego - first check
+ego(g,1,nodes = V(g)$author == "Raphaele Blanchi", "all") # ditto - second check
+
+# Extract vertex attributes 
+
+metrics <- as.data.frame(get.vertex.attribute(g), stringsAsFactors = F)
+
+# export vertex attributes
+
+write.csv(metrics, "2016_vertex_attr.csv", row.names = F)
 
 # save network as.RDA file
 
-save(g, file = "2016/2016_co-author_net.rda")
+save(g, file = "2016_co-author_net.rda")
 
 # export as gml file to display in Gephi
 
-write.graph(g, "2016/2016_co-author.gml", "gml")
+write.graph(g, "2013_co-author.gml", "gml")
+
 
 # export to MPNet
 
-require(MASS)
-
-## adjacency matrix
-
 adjmatrix <- get.adjacency(g)
-write.matrix(adjmatrix, file = "2016/2016_coauthor_adj_mpnet.txt")
+write.matrix(adjmatrix, file = "2016_coauthor_adj_mpnet.txt")
 
-## dyadic covariate matrix
+actor_attributes <- as.data.frame(get.vertex.attribute(g))
 
-proximity <- as_adjacency_matrix(g, attr = "log_distance")
-write.matrix(proximity, file = "2016/2016_coauthor_adj_proximity_mpnet.txt")
-
-## actor attributes
-
-continuous_dat <- subset(actor_attributes, select = c("org_rank", "coauthorships"))
+continuous_dat <- subset(actor_attributes, select = c("org_rank", "prod"))
 categorical_dat <- subset(actor_attributes, select = c("bu_id", "location_id","building_id"))
-write.table(continuous_dat, "2016/2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
-write.table(categorical_dat, "2016/2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(continuous_dat, "2016_continuous_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+write.table(categorical_dat, "2016_categorical_data.txt", row.names = FALSE, col.names = TRUE, sep = "\t", quote = FALSE)
+
+
+
 
 # plotting
 
@@ -286,42 +225,41 @@ gc <- induced.subgraph(g, which(cl$membership == which.max(cl$csize)))
 
 ## configure display parameters
 
-## set vertex size
 
-V(gc)$size <- V(gc)$pr * 5 # productivity stars
-V(gc)$size <- V(gc)$br * 5 # relational stars
-V(gc)$size <- V(gc)$super * 5 # super stars
+V(gc)$size <- V(gc)$prod/max(V(gc)$prod) * 5 # productivity stars
+V(gc)$size <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) * 10 # relational stars
 
-## set edge thickness
 
-E(gc)$thickness <- 1 + E(gc)$log_distance/5
+V(gc)$br <- V(gc)$evbrokerage/max(V(gc)$evbrokerage) # normalise brokerage
+V(gc)$pr <- V(gc)$prod/max(V(gc)$prod) # normalise productivity
 
-## set node colours = bu_id
+V(gc)$size <- V(gc)$br*V(gc)$pr/((V(gc)$br*V(gc)$pr)+(1-V(gc)$br)*(1-V(gc)$pr))*5 # super stars
 
-bu <- factor(V(gc)$bu_code_hash)
+bu <- factor(V(gc)$bu_id)
 cols <- c("#a6cee3","#1f78b4","#b2df8a","#33a02c","#fb9a99",
           "#e31a1c","#fdbf6f","#ff7f00","#cab2d6","#6a3d9a","#ffff99") # http://colorbrewer2.org/#type=qualitative&scheme=Paired&n=11
 
-## fix layout
-
-lo <- layout_with_kk(gc) 
+lo <- layout_with_kk(gc)
+lo <- layout_with_graphopt(gc, spring.length = 2,spring.constant = 4)
 
 ## generate graph
 
-pdf("co-author_2016s.pdf",width=15,height=15) #call the pdf writer
+pdf("co-author_2016c.pdf",width=15,height=15) #call the pdf writer
 
 plot(gc, vertex.color = cols[as.numeric(bu)], 
-     vertex.label = NA, 
-     vertex.size = V(gc)$size, 
-     edge.width = E(gc)$thickness, 
-     layout= lo)
+     vertex.label=NA, 
+     vertex.size=V(gc)$size, edge.width=0.8, layout= lo)
 
-title(main = "Super Stars\n2016", cex.main=2)
-legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.5, title = "Business Unit", box.lty=0)
+title(main = "Relational Stars\n2016", cex.main=2)
+legend("topright",legend=levels(bu),col=cols, pch = 19, cex=1.2, title = "Business Unit", box.lty=0)
 # box(lty = 'solid', lwd = box_line,  col = 'black')
 text(-1, 1.00, labels = paste0('nodes = ', vcount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.975, labels = paste0('edges = ', ecount(g)), adj = c(0,0), cex = 0.8)
 text(-1, 0.95, labels = paste0('density = ', round(edge_density(g),4)), adj = c(0,0), cex = 0.8)
-text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(g,V(g)$bu_code),3)), adj = c(0,0), cex = 0.8)
+text(-1, 0.925, labels = paste0('assortativity = ', round(assortativity_nominal(g,V(g)$bu_id),3)), adj = c(0,0), cex = 0.8)
 
 dev.off() #close the device
+
+
+
+
